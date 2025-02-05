@@ -44,7 +44,7 @@
   </template>
   
   <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getTeacherSessions } from '@/services/courseService'
 import type { CourseSessionListItem } from '@/services/attendmeClient'
@@ -70,12 +70,40 @@ const fetchCourses = async () => {
       return
     }
 
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    let dateStart = getDateFilter(selectedFilter.value)
+    let dateEnd: Date | undefined = undefined
+
+    // Minione
+    if (selectedFilter.value === 'past') {
+      dateEnd = today 
+    } 
+    // Dzisiaj
+    else if (selectedFilter.value === 'today') {
+      dateEnd = new Date(today)
+      dateEnd.setHours(23, 59, 59, 999)
+    }
+
+    // Przyszłe zajęcia
+    else if (dateStart) {
+      if (selectedFilter.value === 'nextWeek') {
+        dateEnd = new Date(dateStart)
+        dateEnd.setDate(dateEnd.getDate() + 7)
+      } else if (selectedFilter.value === 'tomorrow') {
+        dateEnd = new Date(dateStart)
+        dateEnd.setDate(dateEnd.getDate() + 1)
+      }
+    }
+    
     const filter = {
       pageNumber: 1,
       pageSize: 100,
       filters: {
         search: searchQuery.value || undefined,
-        dateStart: getDateFilter(selectedFilter.value)
+        dateStart: selectedFilter.value === 'past' ? undefined : dateStart,
+        dateEnd: dateEnd
       }
     }
 
@@ -91,19 +119,30 @@ const fetchCourses = async () => {
 
 const getDateFilter = (filter: string): Date | undefined => {
   const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  
   switch (filter) {
     case 'today':
       return today
-    case 'tomorrow':
-      const tomorrow = new Date()
+    case 'tomorrow': {
+      const tomorrow = new Date(today)
       tomorrow.setDate(today.getDate() + 1)
       return tomorrow
-    case 'nextWeek':
-      const nextWeek = new Date()
+    }
+    case 'nextWeek': {
+      const nextWeek = new Date(today)
       nextWeek.setDate(today.getDate() + 7)
       return nextWeek
-    default:
+    }
+    case 'past': {
+      return undefined 
+    }
+    case 'all':
       return undefined
+    default:
+      const currentMonth = new Date(today)
+      currentMonth.setDate(1)
+      return currentMonth 
   }
 }
 
@@ -170,6 +209,14 @@ onMounted(() => {
   userRole.value = localStorage.getItem('userRole') || ''
   fetchCourses()
   getUserRole()
+})
+
+watch(selectedFilter, () => {
+  fetchCourses()
+})
+
+watch(searchQuery, () => {
+  fetchCourses()
 })
 </script>
   
@@ -252,6 +299,7 @@ onMounted(() => {
     background: #2a2a2a;
     padding: 15px;
     border-radius: 10px;
+    margin-bottom: 20px;
   }
   .filters-container select,
   .filters-container .search-bar {

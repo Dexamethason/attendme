@@ -9,1549 +9,1924 @@
 // ReSharper disable InconsistentNaming
 
 export class AttendMeBackendClient {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private http: {
+      fetch(url: RequestInfo, init?: RequestInit): Promise<Response>;
+    };
     private baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined =
+      undefined;
+  
+    constructor(
+      baseUrl?: string,
+      http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }
+    ) {
+      this.http = http ? http : (window as any);
+      this.baseUrl = baseUrl ?? '';
     }
-
+  
     /**
-     * @param body (optional) 
+     * @param body (optional)
      * @return Success
      */
-    save(body: AttenderGroup | undefined): Promise<AttenderGroup> {
-        let url_ = this.baseUrl + "/attendergroup/save";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(body);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSave(_response);
+    attendergroupSave(body: AttenderGroup | undefined): Promise<AttenderGroup> {
+      let url_ = this.baseUrl + '/attendergroup/save';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      const content_ = JSON.stringify(body);
+  
+      let options_: RequestInit = {
+        body: content_,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processAttendergroupSave(_response);
+      });
+    }
+  
+    protected processAttendergroupSave(
+      response: Response
+    ): Promise<AttenderGroup> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as AttenderGroup);
+          return result200;
         });
+      } else if (status === 403) {
+        return response.text().then(_responseText => {
+          let result403: any = null;
+          result403 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Forbidden',
+            status,
+            _responseText,
+            _headers,
+            result403
+          );
+        });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<AttenderGroup>(null as any);
     }
-
-    protected processSave(response: Response): Promise<AttenderGroup> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = AttenderGroup.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<AttenderGroup>(null as any);
-    }
-
+  
     /**
-     * @param attenderGroupId (optional) 
-     * @param userId (optional) 
+     * @param attenderGroupId (optional)
+     * @param userId (optional)
      * @return Success
      */
-    add(attenderGroupId: number | undefined, userId: number | undefined): Promise<AttenderGroup> {
-        let url_ = this.baseUrl + "/attendergroup/member/add?";
-        if (attenderGroupId === null)
-            throw new Error("The parameter 'attenderGroupId' cannot be null.");
-        else if (attenderGroupId !== undefined)
-            url_ += "attenderGroupId=" + encodeURIComponent("" + attenderGroupId) + "&";
-        if (userId === null)
-            throw new Error("The parameter 'userId' cannot be null.");
-        else if (userId !== undefined)
-            url_ += "userId=" + encodeURIComponent("" + userId) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "POST",
-            headers: {
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAdd(_response);
+    attendergroupMemberAdd(
+      attenderGroupId: number | undefined,
+      userId: number | undefined
+    ): Promise<AttenderGroup> {
+      let url_ = this.baseUrl + '/attendergroup/member/add?';
+      if (attenderGroupId === null)
+        throw new Error("The parameter 'attenderGroupId' cannot be null.");
+      else if (attenderGroupId !== undefined)
+        url_ +=
+          'attenderGroupId=' + encodeURIComponent('' + attenderGroupId) + '&';
+      if (userId === null)
+        throw new Error("The parameter 'userId' cannot be null.");
+      else if (userId !== undefined)
+        url_ += 'userId=' + encodeURIComponent('' + userId) + '&';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      let options_: RequestInit = {
+        method: 'POST',
+        headers: {
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processAttendergroupMemberAdd(_response);
+      });
+    }
+  
+    protected processAttendergroupMemberAdd(
+      response: Response
+    ): Promise<AttenderGroup> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as AttenderGroup);
+          return result200;
         });
+      } else if (status === 403) {
+        return response.text().then(_responseText => {
+          let result403: any = null;
+          result403 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Forbidden',
+            status,
+            _responseText,
+            _headers,
+            result403
+          );
+        });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<AttenderGroup>(null as any);
     }
-
-    protected processAdd(response: Response): Promise<AttenderGroup> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = AttenderGroup.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<AttenderGroup>(null as any);
-    }
-
+  
     /**
-     * @param body (optional) 
+     * @param body (optional)
      * @return Success
      */
-    save2(body: Course | undefined): Promise<Course> {
-        let url_ = this.baseUrl + "/course/save";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(body);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSave2(_response);
+    courseSave(body: Course | undefined): Promise<Course> {
+      let url_ = this.baseUrl + '/course/save';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      const content_ = JSON.stringify(body);
+  
+      let options_: RequestInit = {
+        body: content_,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processCourseSave(_response);
+      });
+    }
+  
+    protected processCourseSave(response: Response): Promise<Course> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(_responseText, this.jsonParseReviver) as Course);
+          return result200;
         });
+      } else if (status === 403) {
+        return response.text().then(_responseText => {
+          let result403: any = null;
+          result403 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Forbidden',
+            status,
+            _responseText,
+            _headers,
+            result403
+          );
+        });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<Course>(null as any);
     }
-
-    protected processSave2(response: Response): Promise<Course> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = Course.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<Course>(null as any);
-    }
-
+  
     /**
-     * @param body (optional) 
+     * @param body (optional)
      * @return Success
      */
-    save3(body: CourseGroup | undefined): Promise<CourseGroup> {
-        let url_ = this.baseUrl + "/course/group/save";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(body);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSave3(_response);
+    courseGroupSave(body: CourseGroup | undefined): Promise<CourseGroup> {
+      let url_ = this.baseUrl + '/course/group/save';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      const content_ = JSON.stringify(body);
+  
+      let options_: RequestInit = {
+        body: content_,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processCourseGroupSave(_response);
+      });
+    }
+  
+    protected processCourseGroupSave(response: Response): Promise<CourseGroup> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(_responseText, this.jsonParseReviver) as CourseGroup);
+          return result200;
         });
+      } else if (status === 403) {
+        return response.text().then(_responseText => {
+          let result403: any = null;
+          result403 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Forbidden',
+            status,
+            _responseText,
+            _headers,
+            result403
+          );
+        });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<CourseGroup>(null as any);
     }
-
-    protected processSave3(response: Response): Promise<CourseGroup> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = CourseGroup.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<CourseGroup>(null as any);
-    }
-
+  
     /**
-     * @param courseGroupId (optional) 
-     * @param userId (optional) 
+     * @param courseGroupId (optional)
+     * @param userId (optional)
      * @return Success
      */
-    add2(courseGroupId: number | undefined, userId: number | undefined): Promise<void> {
-        let url_ = this.baseUrl + "/course/group/attender-user/add?";
-        if (courseGroupId === null)
-            throw new Error("The parameter 'courseGroupId' cannot be null.");
-        else if (courseGroupId !== undefined)
-            url_ += "courseGroupId=" + encodeURIComponent("" + courseGroupId) + "&";
-        if (userId === null)
-            throw new Error("The parameter 'userId' cannot be null.");
-        else if (userId !== undefined)
-            url_ += "userId=" + encodeURIComponent("" + userId) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "POST",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAdd2(_response);
+    courseGroupAttenderUserAdd(
+      courseGroupId: number | undefined,
+      userId: number | undefined
+    ): Promise<void> {
+      let url_ = this.baseUrl + '/course/group/attender-user/add?';
+      if (courseGroupId === null)
+        throw new Error("The parameter 'courseGroupId' cannot be null.");
+      else if (courseGroupId !== undefined)
+        url_ += 'courseGroupId=' + encodeURIComponent('' + courseGroupId) + '&';
+      if (userId === null)
+        throw new Error("The parameter 'userId' cannot be null.");
+      else if (userId !== undefined)
+        url_ += 'userId=' + encodeURIComponent('' + userId) + '&';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      let options_: RequestInit = {
+        method: 'POST',
+        headers: {},
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processCourseGroupAttenderUserAdd(_response);
+      });
+    }
+  
+    protected processCourseGroupAttenderUserAdd(
+      response: Response
+    ): Promise<void> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          return;
         });
+      } else if (status === 403) {
+        return response.text().then(_responseText => {
+          let result403: any = null;
+          result403 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Forbidden',
+            status,
+            _responseText,
+            _headers,
+            result403
+          );
+        });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<void>(null as any);
     }
-
-    protected processAdd2(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
+  
     /**
-     * @param courseGroupId (optional) 
-     * @param attenderGroupId (optional) 
+     * @param courseGroupId (optional)
+     * @param attenderGroupId (optional)
      * @return Success
      */
-    add3(courseGroupId: number | undefined, attenderGroupId: number | undefined): Promise<void> {
-        let url_ = this.baseUrl + "/course/group/attender-group/add?";
-        if (courseGroupId === null)
-            throw new Error("The parameter 'courseGroupId' cannot be null.");
-        else if (courseGroupId !== undefined)
-            url_ += "courseGroupId=" + encodeURIComponent("" + courseGroupId) + "&";
-        if (attenderGroupId === null)
-            throw new Error("The parameter 'attenderGroupId' cannot be null.");
-        else if (attenderGroupId !== undefined)
-            url_ += "AttenderGroupId=" + encodeURIComponent("" + attenderGroupId) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "POST",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAdd3(_response);
+    courseGroupAttenderGroupAdd(
+      courseGroupId: number | undefined,
+      attenderGroupId: number | undefined
+    ): Promise<void> {
+      let url_ = this.baseUrl + '/course/group/attender-group/add?';
+      if (courseGroupId === null)
+        throw new Error("The parameter 'courseGroupId' cannot be null.");
+      else if (courseGroupId !== undefined)
+        url_ += 'courseGroupId=' + encodeURIComponent('' + courseGroupId) + '&';
+      if (attenderGroupId === null)
+        throw new Error("The parameter 'attenderGroupId' cannot be null.");
+      else if (attenderGroupId !== undefined)
+        url_ +=
+          'AttenderGroupId=' + encodeURIComponent('' + attenderGroupId) + '&';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      let options_: RequestInit = {
+        method: 'POST',
+        headers: {},
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processCourseGroupAttenderGroupAdd(_response);
+      });
+    }
+  
+    protected processCourseGroupAttenderGroupAdd(
+      response: Response
+    ): Promise<void> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          return;
         });
+      } else if (status === 403) {
+        return response.text().then(_responseText => {
+          let result403: any = null;
+          result403 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Forbidden',
+            status,
+            _responseText,
+            _headers,
+            result403
+          );
+        });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<void>(null as any);
     }
-
-    protected processAdd3(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
+  
     /**
-     * @param courseGroupId (optional) 
-     * @param teacherUserId (optional) 
+     * @param courseGroupId (optional)
+     * @param teacherUserId (optional)
      * @return Success
      */
-    assign(courseGroupId: number | undefined, teacherUserId: number | undefined): Promise<void> {
-        let url_ = this.baseUrl + "/course/group/teacher/assign?";
-        if (courseGroupId === null)
-            throw new Error("The parameter 'courseGroupId' cannot be null.");
-        else if (courseGroupId !== undefined)
-            url_ += "courseGroupId=" + encodeURIComponent("" + courseGroupId) + "&";
-        if (teacherUserId === null)
-            throw new Error("The parameter 'teacherUserId' cannot be null.");
-        else if (teacherUserId !== undefined)
-            url_ += "teacherUserId=" + encodeURIComponent("" + teacherUserId) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "POST",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAssign(_response);
+    courseGroupTeacherAssign(
+      courseGroupId: number | undefined,
+      teacherUserId: number | undefined
+    ): Promise<void> {
+      let url_ = this.baseUrl + '/course/group/teacher/assign?';
+      if (courseGroupId === null)
+        throw new Error("The parameter 'courseGroupId' cannot be null.");
+      else if (courseGroupId !== undefined)
+        url_ += 'courseGroupId=' + encodeURIComponent('' + courseGroupId) + '&';
+      if (teacherUserId === null)
+        throw new Error("The parameter 'teacherUserId' cannot be null.");
+      else if (teacherUserId !== undefined)
+        url_ += 'teacherUserId=' + encodeURIComponent('' + teacherUserId) + '&';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      let options_: RequestInit = {
+        method: 'POST',
+        headers: {},
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processCourseGroupTeacherAssign(_response);
+      });
+    }
+  
+    protected processCourseGroupTeacherAssign(response: Response): Promise<void> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          return;
         });
+      } else if (status === 403) {
+        return response.text().then(_responseText => {
+          let result403: any = null;
+          result403 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Forbidden',
+            status,
+            _responseText,
+            _headers,
+            result403
+          );
+        });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<void>(null as any);
     }
-
-    protected processAssign(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
+  
     /**
-     * @param sessionId (optional) 
+     * @param sessionId (optional)
      * @return Success
      */
-    getGET(sessionId: number | undefined): Promise<CourseSessionListItem> {
-        let url_ = this.baseUrl + "/course/teacher/session/get?";
-        if (sessionId === null)
-            throw new Error("The parameter 'sessionId' cannot be null.");
-        else if (sessionId !== undefined)
-            url_ += "sessionId=" + encodeURIComponent("" + sessionId) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetGET(_response);
+    courseTeacherSessionGet(
+      sessionId: number | undefined
+    ): Promise<CourseSessionListItem> {
+      let url_ = this.baseUrl + '/course/teacher/session/get?';
+      if (sessionId === null)
+        throw new Error("The parameter 'sessionId' cannot be null.");
+      else if (sessionId !== undefined)
+        url_ += 'sessionId=' + encodeURIComponent('' + sessionId) + '&';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      let options_: RequestInit = {
+        method: 'GET',
+        headers: {
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processCourseTeacherSessionGet(_response);
+      });
+    }
+  
+    protected processCourseTeacherSessionGet(
+      response: Response
+    ): Promise<CourseSessionListItem> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as CourseSessionListItem);
+          return result200;
         });
+      } else if (status === 403) {
+        return response.text().then(_responseText => {
+          let result403: any = null;
+          result403 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Forbidden',
+            status,
+            _responseText,
+            _headers,
+            result403
+          );
+        });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<CourseSessionListItem>(null as any);
     }
-
-    protected processGetGET(response: Response): Promise<CourseSessionListItem> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = CourseSessionListItem.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<CourseSessionListItem>(null as any);
-    }
-
+  
     /**
-     * @param courseGroupId (optional) 
+     * @param courseGroupId (optional)
      * @return Success
      */
-    getAll(courseGroupId: number | undefined): Promise<CourseSessionListItem[]> {
-        let url_ = this.baseUrl + "/course/student/group/sessions/get?";
-        if (courseGroupId === null)
-            throw new Error("The parameter 'courseGroupId' cannot be null.");
-        else if (courseGroupId !== undefined)
-            url_ += "courseGroupId=" + encodeURIComponent("" + courseGroupId) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetAll(_response);
+    courseStudentGroupSessionsGet(
+      courseGroupId: number | undefined
+    ): Promise<CourseSessionListItem[]> {
+      let url_ = this.baseUrl + '/course/student/group/sessions/get?';
+      if (courseGroupId === null)
+        throw new Error("The parameter 'courseGroupId' cannot be null.");
+      else if (courseGroupId !== undefined)
+        url_ += 'courseGroupId=' + encodeURIComponent('' + courseGroupId) + '&';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      let options_: RequestInit = {
+        method: 'GET',
+        headers: {
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processCourseStudentGroupSessionsGet(_response);
+      });
+    }
+  
+    protected processCourseStudentGroupSessionsGet(
+      response: Response
+    ): Promise<CourseSessionListItem[]> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as CourseSessionListItem[]);
+          return result200;
         });
+      } else if (status === 403) {
+        return response.text().then(_responseText => {
+          let result403: any = null;
+          result403 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Forbidden',
+            status,
+            _responseText,
+            _headers,
+            result403
+          );
+        });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<CourseSessionListItem[]>(null as any);
     }
-
-    protected processGetAll(response: Response): Promise<CourseSessionListItem[]> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(CourseSessionListItem.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
-            return result200;
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<CourseSessionListItem[]>(null as any);
-    }
-
+  
     /**
-     * @param courseGroupId (optional) 
+     * @param courseGroupId (optional)
      * @return Success
      */
-    getAll2(courseGroupId: number | undefined): Promise<AttendanceLog[]> {
-        let url_ = this.baseUrl + "/course/student/attendance/get?";
-        if (courseGroupId === null)
-            throw new Error("The parameter 'courseGroupId' cannot be null.");
-        else if (courseGroupId !== undefined)
-            url_ += "courseGroupId=" + encodeURIComponent("" + courseGroupId) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetAll2(_response);
+    courseStudentAttendanceGet(
+      courseGroupId: number | undefined
+    ): Promise<AttendanceLog[]> {
+      let url_ = this.baseUrl + '/course/student/attendance/get?';
+      if (courseGroupId === null)
+        throw new Error("The parameter 'courseGroupId' cannot be null.");
+      else if (courseGroupId !== undefined)
+        url_ += 'courseGroupId=' + encodeURIComponent('' + courseGroupId) + '&';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      let options_: RequestInit = {
+        method: 'GET',
+        headers: {
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processCourseStudentAttendanceGet(_response);
+      });
+    }
+  
+    protected processCourseStudentAttendanceGet(
+      response: Response
+    ): Promise<AttendanceLog[]> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as AttendanceLog[]);
+          return result200;
         });
+      } else if (status === 403) {
+        return response.text().then(_responseText => {
+          let result403: any = null;
+          result403 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Forbidden',
+            status,
+            _responseText,
+            _headers,
+            result403
+          );
+        });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<AttendanceLog[]>(null as any);
     }
-
-    protected processGetAll2(response: Response): Promise<AttendanceLog[]> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(AttendanceLog.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
-            return result200;
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<AttendanceLog[]>(null as any);
-    }
-
+  
     /**
-     * @param body (optional) 
+     * @param body (optional)
      * @return Success
      */
-    save4(body: CourseSession | undefined): Promise<CourseSession> {
-        let url_ = this.baseUrl + "/course/session/save";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(body);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSave4(_response);
+    courseSessionSave(body: CourseSession | undefined): Promise<CourseSession> {
+      let url_ = this.baseUrl + '/course/session/save';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      const content_ = JSON.stringify(body);
+  
+      let options_: RequestInit = {
+        body: content_,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processCourseSessionSave(_response);
+      });
+    }
+  
+    protected processCourseSessionSave(
+      response: Response
+    ): Promise<CourseSession> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as CourseSession);
+          return result200;
         });
+      } else if (status === 403) {
+        return response.text().then(_responseText => {
+          let result403: any = null;
+          result403 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Forbidden',
+            status,
+            _responseText,
+            _headers,
+            result403
+          );
+        });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<CourseSession>(null as any);
     }
-
-    protected processSave4(response: Response): Promise<CourseSession> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = CourseSession.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<CourseSession>(null as any);
-    }
-
+  
     /**
-     * @param body (optional) 
+     * @param body (optional)
      * @return Success
      */
-    getPOST(body: CourseSessionListFiltersPagedListParams | undefined): Promise<CourseSessionListItemPagedList> {
-        let url_ = this.baseUrl + "/course/student/sessions/get";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(body);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetPOST(_response);
+    courseStudentSessionsGet(
+      body: CourseSessionListFiltersPagedListParams | undefined
+    ): Promise<CourseSessionListItemPagedList> {
+      let url_ = this.baseUrl + '/course/student/sessions/get';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      const content_ = JSON.stringify(body);
+  
+      let options_: RequestInit = {
+        body: content_,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processCourseStudentSessionsGet(_response);
+      });
+    }
+  
+    protected processCourseStudentSessionsGet(
+      response: Response
+    ): Promise<CourseSessionListItemPagedList> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as CourseSessionListItemPagedList);
+          return result200;
         });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<CourseSessionListItemPagedList>(null as any);
     }
-
-    protected processGetPOST(response: Response): Promise<CourseSessionListItemPagedList> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = CourseSessionListItemPagedList.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<CourseSessionListItemPagedList>(null as any);
-    }
-
+  
     /**
-     * @param body (optional) 
+     * @param body (optional)
      * @return Success
      */
-    getPOST2(body: CourseSessionListFiltersPagedListParams | undefined): Promise<CourseSessionListItemPagedList> {
-        let url_ = this.baseUrl + "/course/teacher/sessions/get";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(body);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetPOST2(_response);
+    courseTeacherSessionsGet(
+      body: CourseSessionListFiltersPagedListParams | undefined
+    ): Promise<CourseSessionListItemPagedList> {
+      let url_ = this.baseUrl + '/course/teacher/sessions/get';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      const content_ = JSON.stringify(body);
+  
+      let options_: RequestInit = {
+        body: content_,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processCourseTeacherSessionsGet(_response);
+      });
+    }
+  
+    protected processCourseTeacherSessionsGet(
+      response: Response
+    ): Promise<CourseSessionListItemPagedList> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as CourseSessionListItemPagedList);
+          return result200;
         });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<CourseSessionListItemPagedList>(null as any);
     }
-
-    protected processGetPOST2(response: Response): Promise<CourseSessionListItemPagedList> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = CourseSessionListItemPagedList.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<CourseSessionListItemPagedList>(null as any);
-    }
-
+  
     /**
-     * @param sessionId (optional) 
+     * @param sessionId (optional)
      * @return Success
      */
-    getAll3(sessionId: number | undefined): Promise<CourseSessionAttendanceRecord[]> {
-        let url_ = this.baseUrl + "/course/session/attendance-list/get?";
-        if (sessionId === null)
-            throw new Error("The parameter 'sessionId' cannot be null.");
-        else if (sessionId !== undefined)
-            url_ += "sessionId=" + encodeURIComponent("" + sessionId) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetAll3(_response);
+    courseSessionAttendanceListGet(
+      sessionId: number | undefined
+    ): Promise<CourseSessionAttendanceRecord[]> {
+      let url_ = this.baseUrl + '/course/session/attendance-list/get?';
+      if (sessionId === null)
+        throw new Error("The parameter 'sessionId' cannot be null.");
+      else if (sessionId !== undefined)
+        url_ += 'sessionId=' + encodeURIComponent('' + sessionId) + '&';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      let options_: RequestInit = {
+        method: 'GET',
+        headers: {
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processCourseSessionAttendanceListGet(_response);
+      });
+    }
+  
+    protected processCourseSessionAttendanceListGet(
+      response: Response
+    ): Promise<CourseSessionAttendanceRecord[]> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as CourseSessionAttendanceRecord[]);
+          return result200;
         });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<CourseSessionAttendanceRecord[]>(null as any);
     }
-
-    protected processGetAll3(response: Response): Promise<CourseSessionAttendanceRecord[]> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(CourseSessionAttendanceRecord.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<CourseSessionAttendanceRecord[]>(null as any);
-    }
-
+  
     /**
-     * @param courseSessionId (optional) 
+     * @param courseSessionId (optional)
      * @return Success
      */
-    getGET2(courseSessionId: number | undefined): Promise<TokenResult> {
-        let url_ = this.baseUrl + "/course/session/attendance/scanner/token/get?";
-        if (courseSessionId === null)
-            throw new Error("The parameter 'courseSessionId' cannot be null.");
-        else if (courseSessionId !== undefined)
-            url_ += "courseSessionId=" + encodeURIComponent("" + courseSessionId) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetGET2(_response);
+    courseSessionAttendanceScannerTokenGet(
+      courseSessionId: number | undefined
+    ): Promise<TokenResult> {
+      let url_ = this.baseUrl + '/course/session/attendance/scanner/token/get?';
+      if (courseSessionId === null)
+        throw new Error("The parameter 'courseSessionId' cannot be null.");
+      else if (courseSessionId !== undefined)
+        url_ +=
+          'courseSessionId=' + encodeURIComponent('' + courseSessionId) + '&';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      let options_: RequestInit = {
+        method: 'GET',
+        headers: {
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processCourseSessionAttendanceScannerTokenGet(_response);
+      });
+    }
+  
+    protected processCourseSessionAttendanceScannerTokenGet(
+      response: Response
+    ): Promise<TokenResult> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(_responseText, this.jsonParseReviver) as TokenResult);
+          return result200;
         });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<TokenResult>(null as any);
     }
-
-    protected processGetGET2(response: Response): Promise<TokenResult> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = TokenResult.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<TokenResult>(null as any);
-    }
-
+  
     /**
-     * @param attenderToken (optional) 
+     * @param attenderToken (optional)
      * @return Success
      */
-    registerGET(attenderToken: string | undefined): Promise<User> {
-        let url_ = this.baseUrl + "/course/session/attendance/register?";
-        if (attenderToken === null)
-            throw new Error("The parameter 'attenderToken' cannot be null.");
-        else if (attenderToken !== undefined)
-            url_ += "attenderToken=" + encodeURIComponent("" + attenderToken) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processRegisterGET(_response);
+    courseSessionAttendanceRegister(
+      attenderToken: string | undefined
+    ): Promise<User> {
+      let url_ = this.baseUrl + '/course/session/attendance/register?';
+      if (attenderToken === null)
+        throw new Error("The parameter 'attenderToken' cannot be null.");
+      else if (attenderToken !== undefined)
+        url_ += 'attenderToken=' + encodeURIComponent('' + attenderToken) + '&';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      let options_: RequestInit = {
+        method: 'GET',
+        headers: {
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processCourseSessionAttendanceRegister(_response);
+      });
+    }
+  
+    protected processCourseSessionAttendanceRegister(
+      response: Response
+    ): Promise<User> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(_responseText, this.jsonParseReviver) as User);
+          return result200;
         });
+      } else if (status === 400) {
+        return response.text().then(_responseText => {
+          let result400: any = null;
+          result400 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Bad Request',
+            status,
+            _responseText,
+            _headers,
+            result400
+          );
+        });
+      } else if (status === 403) {
+        return response.text().then(_responseText => {
+          let result403: any = null;
+          result403 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Forbidden',
+            status,
+            _responseText,
+            _headers,
+            result403
+          );
+        });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<User>(null as any);
     }
-
-    protected processRegisterGET(response: Response): Promise<User> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = User.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status === 400) {
-            return response.text().then((_responseText) => {
-            let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result400 = ProblemDetails.fromJS(resultData400);
-            return throwException("Bad Request", status, _responseText, _headers, result400);
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<User>(null as any);
-    }
-
+  
     /**
-     * @param attendingUserId (optional) 
-     * @param courseSessionId (optional) 
-     * @param addOrRemove (optional) 
+     * @param attendingUserId (optional)
+     * @param courseSessionId (optional)
+     * @param addOrRemove (optional)
      * @return Success
      */
-    toggle(attendingUserId: number | undefined, courseSessionId: number | undefined, addOrRemove: boolean | undefined): Promise<AttendanceLog[]> {
-        let url_ = this.baseUrl + "/course/session/attendance/toggle?";
-        if (attendingUserId === null)
-            throw new Error("The parameter 'attendingUserId' cannot be null.");
-        else if (attendingUserId !== undefined)
-            url_ += "attendingUserId=" + encodeURIComponent("" + attendingUserId) + "&";
-        if (courseSessionId === null)
-            throw new Error("The parameter 'courseSessionId' cannot be null.");
-        else if (courseSessionId !== undefined)
-            url_ += "courseSessionId=" + encodeURIComponent("" + courseSessionId) + "&";
-        if (addOrRemove === null)
-            throw new Error("The parameter 'addOrRemove' cannot be null.");
-        else if (addOrRemove !== undefined)
-            url_ += "addOrRemove=" + encodeURIComponent("" + addOrRemove) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processToggle(_response);
+    courseSessionAttendanceToggle(
+      attendingUserId: number | undefined,
+      courseSessionId: number | undefined,
+      addOrRemove: boolean | undefined
+    ): Promise<AttendanceLog[]> {
+      let url_ = this.baseUrl + '/course/session/attendance/toggle?';
+      if (attendingUserId === null)
+        throw new Error("The parameter 'attendingUserId' cannot be null.");
+      else if (attendingUserId !== undefined)
+        url_ +=
+          'attendingUserId=' + encodeURIComponent('' + attendingUserId) + '&';
+      if (courseSessionId === null)
+        throw new Error("The parameter 'courseSessionId' cannot be null.");
+      else if (courseSessionId !== undefined)
+        url_ +=
+          'courseSessionId=' + encodeURIComponent('' + courseSessionId) + '&';
+      if (addOrRemove === null)
+        throw new Error("The parameter 'addOrRemove' cannot be null.");
+      else if (addOrRemove !== undefined)
+        url_ += 'addOrRemove=' + encodeURIComponent('' + addOrRemove) + '&';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      let options_: RequestInit = {
+        method: 'GET',
+        headers: {
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processCourseSessionAttendanceToggle(_response);
+      });
+    }
+  
+    protected processCourseSessionAttendanceToggle(
+      response: Response
+    ): Promise<AttendanceLog[]> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as AttendanceLog[]);
+          return result200;
         });
+      } else if (status === 400) {
+        return response.text().then(_responseText => {
+          let result400: any = null;
+          result400 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Bad Request',
+            status,
+            _responseText,
+            _headers,
+            result400
+          );
+        });
+      } else if (status === 403) {
+        return response.text().then(_responseText => {
+          let result403: any = null;
+          result403 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Forbidden',
+            status,
+            _responseText,
+            _headers,
+            result403
+          );
+        });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<AttendanceLog[]>(null as any);
     }
-
-    protected processToggle(response: Response): Promise<AttendanceLog[]> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(AttendanceLog.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
-            return result200;
-            });
-        } else if (status === 400) {
-            return response.text().then((_responseText) => {
-            let result400: any = null;
-            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result400 = ProblemDetails.fromJS(resultData400);
-            return throwException("Bad Request", status, _responseText, _headers, result400);
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<AttendanceLog[]>(null as any);
-    }
-
+  
     /**
-     * @param token (optional) 
+     * @param token (optional)
      * @return Success
      */
-    tokenDecode(token: string | undefined): Promise<string> {
-        let url_ = this.baseUrl + "/test/token-decode?";
-        if (token === null)
-            throw new Error("The parameter 'token' cannot be null.");
-        else if (token !== undefined)
-            url_ += "token=" + encodeURIComponent("" + token) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "POST",
-            headers: {
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processTokenDecode(_response);
+    testTokenDecode(token: string | undefined): Promise<string> {
+      let url_ = this.baseUrl + '/test/token-decode?';
+      if (token === null)
+        throw new Error("The parameter 'token' cannot be null.");
+      else if (token !== undefined)
+        url_ += 'token=' + encodeURIComponent('' + token) + '&';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      let options_: RequestInit = {
+        method: 'POST',
+        headers: {
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processTestTokenDecode(_response);
+      });
+    }
+  
+    protected processTestTokenDecode(response: Response): Promise<string> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(_responseText, this.jsonParseReviver) as string);
+          return result200;
         });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<string>(null as any);
     }
-
-    protected processTokenDecode(response: Response): Promise<string> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                result200 = resultData200 !== undefined ? resultData200 : <any>null;
-    
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<string>(null as any);
-    }
-
+  
     /**
-     * @param loginName (optional) 
-     * @param password (optional) 
+     * @param loginName (optional)
+     * @param password (optional)
      * @return Success
      */
-    login(loginName: string | undefined, password: string | undefined): Promise<TokenResult> {
-        let url_ = this.baseUrl + "/user/login?";
-        if (loginName === null)
-            throw new Error("The parameter 'loginName' cannot be null.");
-        else if (loginName !== undefined)
-            url_ += "loginName=" + encodeURIComponent("" + loginName) + "&";
-        if (password === null)
-            throw new Error("The parameter 'password' cannot be null.");
-        else if (password !== undefined)
-            url_ += "password=" + encodeURIComponent("" + password) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "POST",
-            headers: {
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processLogin(_response);
+    userLogin(
+      loginName: string | undefined,
+      password: string | undefined
+    ): Promise<TokenResult> {
+      let url_ = this.baseUrl + '/user/login?';
+      if (loginName === null)
+        throw new Error("The parameter 'loginName' cannot be null.");
+      else if (loginName !== undefined)
+        url_ += 'loginName=' + encodeURIComponent('' + loginName) + '&';
+      if (password === null)
+        throw new Error("The parameter 'password' cannot be null.");
+      else if (password !== undefined)
+        url_ += 'password=' + encodeURIComponent('' + password) + '&';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      let options_: RequestInit = {
+        method: 'POST',
+        headers: {
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processUserLogin(_response);
+      });
+    }
+  
+    protected processUserLogin(response: Response): Promise<TokenResult> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(_responseText, this.jsonParseReviver) as TokenResult);
+          return result200;
         });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<TokenResult>(null as any);
     }
-
-    protected processLogin(response: Response): Promise<TokenResult> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = TokenResult.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<TokenResult>(null as any);
-    }
-
+  
     /**
-     * @param deviceUserId (optional) 
+     * @param deviceUserId (optional)
      * @return Success
      */
-    reset(deviceUserId: number | undefined): Promise<void> {
-        let url_ = this.baseUrl + "/user/device/reset?";
-        if (deviceUserId === null)
-            throw new Error("The parameter 'deviceUserId' cannot be null.");
-        else if (deviceUserId !== undefined)
-            url_ += "deviceUserId=" + encodeURIComponent("" + deviceUserId) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "POST",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processReset(_response);
+    userDeviceReset(deviceUserId: number | undefined): Promise<void> {
+      let url_ = this.baseUrl + '/user/device/reset?';
+      if (deviceUserId === null)
+        throw new Error("The parameter 'deviceUserId' cannot be null.");
+      else if (deviceUserId !== undefined)
+        url_ += 'deviceUserId=' + encodeURIComponent('' + deviceUserId) + '&';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      let options_: RequestInit = {
+        method: 'POST',
+        headers: {},
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processUserDeviceReset(_response);
+      });
+    }
+  
+    protected processUserDeviceReset(response: Response): Promise<void> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          return;
         });
+      } else if (status === 403) {
+        return response.text().then(_responseText => {
+          let result403: any = null;
+          result403 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Forbidden',
+            status,
+            _responseText,
+            _headers,
+            result403
+          );
+        });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<void>(null as any);
     }
-
-    protected processReset(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
+  
     /**
-     * @param deviceUserId (optional) 
+     * @param deviceUserId (optional)
      * @return Success
      */
-    getGET3(deviceUserId: number | undefined): Promise<TokenResult> {
-        let url_ = this.baseUrl + "/user/device/register/token/get?";
-        if (deviceUserId === null)
-            throw new Error("The parameter 'deviceUserId' cannot be null.");
-        else if (deviceUserId !== undefined)
-            url_ += "deviceUserId=" + encodeURIComponent("" + deviceUserId) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetGET3(_response);
+    userDeviceRegisterTokenGet(
+      deviceUserId: number | undefined
+    ): Promise<TokenResult> {
+      let url_ = this.baseUrl + '/user/device/register/token/get?';
+      if (deviceUserId === null)
+        throw new Error("The parameter 'deviceUserId' cannot be null.");
+      else if (deviceUserId !== undefined)
+        url_ += 'deviceUserId=' + encodeURIComponent('' + deviceUserId) + '&';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      let options_: RequestInit = {
+        method: 'GET',
+        headers: {
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processUserDeviceRegisterTokenGet(_response);
+      });
+    }
+  
+    protected processUserDeviceRegisterTokenGet(
+      response: Response
+    ): Promise<TokenResult> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(_responseText, this.jsonParseReviver) as TokenResult);
+          return result200;
         });
+      } else if (status === 403) {
+        return response.text().then(_responseText => {
+          let result403: any = null;
+          result403 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Forbidden',
+            status,
+            _responseText,
+            _headers,
+            result403
+          );
+        });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<TokenResult>(null as any);
     }
-
-    protected processGetGET3(response: Response): Promise<TokenResult> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = TokenResult.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<TokenResult>(null as any);
-    }
-
+  
     /**
-     * @param body (optional) 
+     * @param body (optional)
      * @return Success
      */
-    registerPOST(body: DeviceRegisterDTO | undefined): Promise<TokenResult> {
-        let url_ = this.baseUrl + "/user/device/register";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(body);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processRegisterPOST(_response);
+    userDeviceRegister(
+      body: DeviceRegisterDTO | undefined
+    ): Promise<TokenResult> {
+      let url_ = this.baseUrl + '/user/device/register';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      const content_ = JSON.stringify(body);
+  
+      let options_: RequestInit = {
+        body: content_,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processUserDeviceRegister(_response);
+      });
+    }
+  
+    protected processUserDeviceRegister(
+      response: Response
+    ): Promise<TokenResult> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(_responseText, this.jsonParseReviver) as TokenResult);
+          return result200;
         });
+      } else if (status === 403) {
+        return response.text().then(_responseText => {
+          let result403: any = null;
+          result403 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Forbidden',
+            status,
+            _responseText,
+            _headers,
+            result403
+          );
+        });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<TokenResult>(null as any);
     }
-
-    protected processRegisterPOST(response: Response): Promise<TokenResult> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = TokenResult.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<TokenResult>(null as any);
-    }
-
+  
     /**
      * @return Success
      */
-    getGET4(): Promise<TokenResult> {
-        let url_ = this.baseUrl + "/user/attendance/ticket/get";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetGET4(_response);
+    userAttendanceTicketGet(): Promise<TokenResult> {
+      let url_ = this.baseUrl + '/user/attendance/ticket/get';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      let options_: RequestInit = {
+        method: 'GET',
+        headers: {
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processUserAttendanceTicketGet(_response);
+      });
+    }
+  
+    protected processUserAttendanceTicketGet(
+      response: Response
+    ): Promise<TokenResult> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(_responseText, this.jsonParseReviver) as TokenResult);
+          return result200;
         });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<TokenResult>(null as any);
     }
-
-    protected processGetGET4(response: Response): Promise<TokenResult> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = TokenResult.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<TokenResult>(null as any);
-    }
-
+  
     /**
-     * @param userId (optional) 
+     * @param userId (optional)
      * @return Success
      */
-    getGET5(userId: number | undefined): Promise<User> {
-        let url_ = this.baseUrl + "/user/get?";
-        if (userId === null)
-            throw new Error("The parameter 'userId' cannot be null.");
-        else if (userId !== undefined)
-            url_ += "userId=" + encodeURIComponent("" + userId) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetGET5(_response);
+    userGet(userId: number | undefined): Promise<User> {
+      let url_ = this.baseUrl + '/user/get?';
+      if (userId === null)
+        throw new Error("The parameter 'userId' cannot be null.");
+      else if (userId !== undefined)
+        url_ += 'userId=' + encodeURIComponent('' + userId) + '&';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      let options_: RequestInit = {
+        method: 'GET',
+        headers: {
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processUserGet(_response);
+      });
+    }
+  
+    protected processUserGet(response: Response): Promise<User> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(_responseText, this.jsonParseReviver) as User);
+          return result200;
         });
+      } else if (status === 403) {
+        return response.text().then(_responseText => {
+          let result403: any = null;
+          result403 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Forbidden',
+            status,
+            _responseText,
+            _headers,
+            result403
+          );
+        });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<User>(null as any);
     }
-
-    protected processGetGET5(response: Response): Promise<User> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = User.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<User>(null as any);
-    }
-
+  
     /**
-     * @param loginName (optional) 
-     * @param password (optional) 
-     * @param body (optional) 
+     * @param loginName (optional)
+     * @param password (optional)
+     * @param body (optional)
      * @return Success
      */
-    create(loginName: string | undefined, password: string | undefined, body: StudentUserDTO | undefined): Promise<number> {
-        let url_ = this.baseUrl + "/user/student/create?";
-        if (loginName === null)
-            throw new Error("The parameter 'loginName' cannot be null.");
-        else if (loginName !== undefined)
-            url_ += "loginName=" + encodeURIComponent("" + loginName) + "&";
-        if (password === null)
-            throw new Error("The parameter 'password' cannot be null.");
-        else if (password !== undefined)
-            url_ += "password=" + encodeURIComponent("" + password) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(body);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCreate(_response);
+    userStudentCreate(
+      loginName: string | undefined,
+      password: string | undefined,
+      body: StudentUserDTO | undefined
+    ): Promise<number> {
+      let url_ = this.baseUrl + '/user/student/create?';
+      if (loginName === null)
+        throw new Error("The parameter 'loginName' cannot be null.");
+      else if (loginName !== undefined)
+        url_ += 'loginName=' + encodeURIComponent('' + loginName) + '&';
+      if (password === null)
+        throw new Error("The parameter 'password' cannot be null.");
+      else if (password !== undefined)
+        url_ += 'password=' + encodeURIComponent('' + password) + '&';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      const content_ = JSON.stringify(body);
+  
+      let options_: RequestInit = {
+        body: content_,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processUserStudentCreate(_response);
+      });
+    }
+  
+    protected processUserStudentCreate(response: Response): Promise<number> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(_responseText, this.jsonParseReviver) as number);
+          return result200;
         });
+      } else if (status === 403) {
+        return response.text().then(_responseText => {
+          let result403: any = null;
+          result403 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Forbidden',
+            status,
+            _responseText,
+            _headers,
+            result403
+          );
+        });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<number>(null as any);
     }
-
-    protected processCreate(response: Response): Promise<number> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                result200 = resultData200 !== undefined ? resultData200 : <any>null;
-    
-            return result200;
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<number>(null as any);
-    }
-
+  
     /**
-     * @param loginName (optional) 
-     * @param password (optional) 
-     * @param body (optional) 
+     * @param loginName (optional)
+     * @param password (optional)
+     * @param body (optional)
      * @return Success
      */
-    create2(loginName: string | undefined, password: string | undefined, body: TeacherUserDTO | undefined): Promise<number> {
-        let url_ = this.baseUrl + "/user/teacher/create?";
-        if (loginName === null)
-            throw new Error("The parameter 'loginName' cannot be null.");
-        else if (loginName !== undefined)
-            url_ += "loginName=" + encodeURIComponent("" + loginName) + "&";
-        if (password === null)
-            throw new Error("The parameter 'password' cannot be null.");
-        else if (password !== undefined)
-            url_ += "password=" + encodeURIComponent("" + password) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(body);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "text/plain"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCreate2(_response);
+    userTeacherCreate(
+      loginName: string | undefined,
+      password: string | undefined,
+      body: TeacherUserDTO | undefined
+    ): Promise<number> {
+      let url_ = this.baseUrl + '/user/teacher/create?';
+      if (loginName === null)
+        throw new Error("The parameter 'loginName' cannot be null.");
+      else if (loginName !== undefined)
+        url_ += 'loginName=' + encodeURIComponent('' + loginName) + '&';
+      if (password === null)
+        throw new Error("The parameter 'password' cannot be null.");
+      else if (password !== undefined)
+        url_ += 'password=' + encodeURIComponent('' + password) + '&';
+      url_ = url_.replace(/[?&]$/, '');
+  
+      const content_ = JSON.stringify(body);
+  
+      let options_: RequestInit = {
+        body: content_,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'text/plain',
+        },
+      };
+  
+      return this.http.fetch(url_, options_).then((_response: Response) => {
+        return this.processUserTeacherCreate(_response);
+      });
+    }
+  
+    protected processUserTeacherCreate(response: Response): Promise<number> {
+      const status = response.status;
+      let _headers: any = {};
+      if (response.headers && response.headers.forEach) {
+        response.headers.forEach((v: any, k: any) => (_headers[k] = v));
+      }
+      if (status === 200) {
+        return response.text().then(_responseText => {
+          let result200: any = null;
+          result200 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(_responseText, this.jsonParseReviver) as number);
+          return result200;
         });
+      } else if (status === 403) {
+        return response.text().then(_responseText => {
+          let result403: any = null;
+          result403 =
+            _responseText === ''
+              ? null
+              : (JSON.parse(
+                  _responseText,
+                  this.jsonParseReviver
+                ) as ProblemDetails);
+          return throwException(
+            'Forbidden',
+            status,
+            _responseText,
+            _headers,
+            result403
+          );
+        });
+      } else if (status !== 200 && status !== 204) {
+        return response.text().then(_responseText => {
+          return throwException(
+            'An unexpected server error occurred.',
+            status,
+            _responseText,
+            _headers
+          );
+        });
+      }
+      return Promise.resolve<number>(null as any);
     }
-
-    protected processCreate2(response: Response): Promise<number> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                result200 = resultData200 !== undefined ? resultData200 : <any>null;
-    
-            return result200;
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result403 = ProblemDetails.fromJS(resultData403);
-            return throwException("Forbidden", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<number>(null as any);
-    }
-}
-
-export class AttendanceLog implements IAttendanceLog {
+  }
+  
+  export interface AttendanceLog {
     attendanceLogId?: number;
     attenderUserId?: number;
     courseSessionId?: number;
     readonly dateCreated?: Date;
-
-    constructor(data?: IAttendanceLog) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.attendanceLogId = _data["attendanceLogId"];
-            this.attenderUserId = _data["attenderUserId"];
-            this.courseSessionId = _data["courseSessionId"];
-            (<any>this).dateCreated = _data["dateCreated"] ? new Date(_data["dateCreated"].toString()) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): AttendanceLog {
-        data = typeof data === 'object' ? data : {};
-        let result = new AttendanceLog();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["attendanceLogId"] = this.attendanceLogId;
-        data["attenderUserId"] = this.attenderUserId;
-        data["courseSessionId"] = this.courseSessionId;
-        data["dateCreated"] = this.dateCreated ? this.dateCreated.toISOString() : <any>undefined;
-        return data;
-    }
-}
-
-export interface IAttendanceLog {
-    attendanceLogId?: number;
-    attenderUserId?: number;
-    courseSessionId?: number;
-    dateCreated?: Date;
-}
-
-export class AttenderGroup implements IAttenderGroup {
+  }
+  
+  export interface AttenderGroup {
     attenderGroupId?: number;
     groupName?: string;
     yearOfStudy?: number;
     studyDirection?: string;
     readonly dateCreated?: Date;
     attenderGroupMembers?: AttenderGroupMember[] | undefined;
-
-    constructor(data?: IAttenderGroup) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.attenderGroupId = _data["attenderGroupId"];
-            this.groupName = _data["groupName"];
-            this.yearOfStudy = _data["yearOfStudy"];
-            this.studyDirection = _data["studyDirection"];
-            (<any>this).dateCreated = _data["dateCreated"] ? new Date(_data["dateCreated"].toString()) : <any>undefined;
-            if (Array.isArray(_data["attenderGroupMembers"])) {
-                this.attenderGroupMembers = [] as any;
-                for (let item of _data["attenderGroupMembers"])
-                    this.attenderGroupMembers!.push(AttenderGroupMember.fromJS(item));
-            }
-        }
-    }
-
-    static fromJS(data: any): AttenderGroup {
-        data = typeof data === 'object' ? data : {};
-        let result = new AttenderGroup();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["attenderGroupId"] = this.attenderGroupId;
-        data["groupName"] = this.groupName;
-        data["yearOfStudy"] = this.yearOfStudy;
-        data["studyDirection"] = this.studyDirection;
-        data["dateCreated"] = this.dateCreated ? this.dateCreated.toISOString() : <any>undefined;
-        if (Array.isArray(this.attenderGroupMembers)) {
-            data["attenderGroupMembers"] = [];
-            for (let item of this.attenderGroupMembers)
-                data["attenderGroupMembers"].push(item.toJSON());
-        }
-        return data;
-    }
-}
-
-export interface IAttenderGroup {
-    attenderGroupId?: number;
-    groupName?: string;
-    yearOfStudy?: number;
-    studyDirection?: string;
-    dateCreated?: Date;
-    attenderGroupMembers?: AttenderGroupMember[] | undefined;
-}
-
-export class AttenderGroupMember implements IAttenderGroupMember {
+  }
+  
+  export interface AttenderGroupMember {
     attenderGroupMemberId?: number;
     memberUserId?: number;
     memberUser?: User;
     attenderGroupId?: number;
     attenderGroup?: AttenderGroup;
     readonly dateCreated?: Date;
-
-    constructor(data?: IAttenderGroupMember) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.attenderGroupMemberId = _data["attenderGroupMemberId"];
-            this.memberUserId = _data["memberUserId"];
-            this.memberUser = _data["memberUser"] ? User.fromJS(_data["memberUser"]) : <any>undefined;
-            this.attenderGroupId = _data["attenderGroupId"];
-            this.attenderGroup = _data["attenderGroup"] ? AttenderGroup.fromJS(_data["attenderGroup"]) : <any>undefined;
-            (<any>this).dateCreated = _data["dateCreated"] ? new Date(_data["dateCreated"].toString()) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): AttenderGroupMember {
-        data = typeof data === 'object' ? data : {};
-        let result = new AttenderGroupMember();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["attenderGroupMemberId"] = this.attenderGroupMemberId;
-        data["memberUserId"] = this.memberUserId;
-        data["memberUser"] = this.memberUser ? this.memberUser.toJSON() : <any>undefined;
-        data["attenderGroupId"] = this.attenderGroupId;
-        data["attenderGroup"] = this.attenderGroup ? this.attenderGroup.toJSON() : <any>undefined;
-        data["dateCreated"] = this.dateCreated ? this.dateCreated.toISOString() : <any>undefined;
-        return data;
-    }
-}
-
-export interface IAttenderGroupMember {
-    attenderGroupMemberId?: number;
-    memberUserId?: number;
-    memberUser?: User;
-    attenderGroupId?: number;
-    attenderGroup?: AttenderGroup;
-    dateCreated?: Date;
-}
-
-export class Course implements ICourse {
+  }
+  
+  export interface Course {
     courseId?: number;
     courseName?: string;
     courseDescription?: string;
     readonly dateCreated?: Date;
     courseGroups?: CourseGroup[] | undefined;
-
-    constructor(data?: ICourse) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.courseId = _data["courseId"];
-            this.courseName = _data["courseName"];
-            this.courseDescription = _data["courseDescription"];
-            (<any>this).dateCreated = _data["dateCreated"] ? new Date(_data["dateCreated"].toString()) : <any>undefined;
-            if (Array.isArray(_data["courseGroups"])) {
-                this.courseGroups = [] as any;
-                for (let item of _data["courseGroups"])
-                    this.courseGroups!.push(CourseGroup.fromJS(item));
-            }
-        }
-    }
-
-    static fromJS(data: any): Course {
-        data = typeof data === 'object' ? data : {};
-        let result = new Course();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["courseId"] = this.courseId;
-        data["courseName"] = this.courseName;
-        data["courseDescription"] = this.courseDescription;
-        data["dateCreated"] = this.dateCreated ? this.dateCreated.toISOString() : <any>undefined;
-        if (Array.isArray(this.courseGroups)) {
-            data["courseGroups"] = [];
-            for (let item of this.courseGroups)
-                data["courseGroups"].push(item.toJSON());
-        }
-        return data;
-    }
-}
-
-export interface ICourse {
-    courseId?: number;
-    courseName?: string;
-    courseDescription?: string;
-    dateCreated?: Date;
-    courseGroups?: CourseGroup[] | undefined;
-}
-
-export class CourseGroup implements ICourseGroup {
+  }
+  
+  export interface CourseGroup {
     courseGroupId?: number;
     courseId?: number;
     course?: Course;
@@ -1568,110 +1943,9 @@ export class CourseGroup implements ICourseGroup {
     dateStart?: Date;
     dateEnd?: Date;
     readonly dateCreated?: Date;
-
-    constructor(data?: ICourseGroup) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.courseGroupId = _data["courseGroupId"];
-            this.courseId = _data["courseId"];
-            this.course = _data["course"] ? Course.fromJS(_data["course"]) : <any>undefined;
-            this.courseGroupType = _data["courseGroupType"];
-            this.courseGroupName = _data["courseGroupName"];
-            this.courseGroupDescription = _data["courseGroupDescription"];
-            this.teacherUserId = _data["teacherUserId"];
-            this.teacherUser = _data["teacherUser"] ? User.fromJS(_data["teacherUser"]) : <any>undefined;
-            if (Array.isArray(_data["sessions"])) {
-                this.sessions = [] as any;
-                for (let item of _data["sessions"])
-                    this.sessions!.push(CourseSession.fromJS(item));
-            }
-            if (Array.isArray(_data["attenderGroupAssigments"])) {
-                this.attenderGroupAssigments = [] as any;
-                for (let item of _data["attenderGroupAssigments"])
-                    this.attenderGroupAssigments!.push(CourseGroupAttenderGroupAssigment.fromJS(item));
-            }
-            if (Array.isArray(_data["userAssigments"])) {
-                this.userAssigments = [] as any;
-                for (let item of _data["userAssigments"])
-                    this.userAssigments!.push(CourseGroupUserAssigment.fromJS(item));
-            }
-            this.yearOfStudy = _data["yearOfStudy"];
-            this.semesterCode = _data["semesterCode"];
-            this.dateStart = _data["dateStart"] ? new Date(_data["dateStart"].toString()) : <any>undefined;
-            this.dateEnd = _data["dateEnd"] ? new Date(_data["dateEnd"].toString()) : <any>undefined;
-            (<any>this).dateCreated = _data["dateCreated"] ? new Date(_data["dateCreated"].toString()) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): CourseGroup {
-        data = typeof data === 'object' ? data : {};
-        let result = new CourseGroup();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["courseGroupId"] = this.courseGroupId;
-        data["courseId"] = this.courseId;
-        data["course"] = this.course ? this.course.toJSON() : <any>undefined;
-        data["courseGroupType"] = this.courseGroupType;
-        data["courseGroupName"] = this.courseGroupName;
-        data["courseGroupDescription"] = this.courseGroupDescription;
-        data["teacherUserId"] = this.teacherUserId;
-        data["teacherUser"] = this.teacherUser ? this.teacherUser.toJSON() : <any>undefined;
-        if (Array.isArray(this.sessions)) {
-            data["sessions"] = [];
-            for (let item of this.sessions)
-                data["sessions"].push(item.toJSON());
-        }
-        if (Array.isArray(this.attenderGroupAssigments)) {
-            data["attenderGroupAssigments"] = [];
-            for (let item of this.attenderGroupAssigments)
-                data["attenderGroupAssigments"].push(item.toJSON());
-        }
-        if (Array.isArray(this.userAssigments)) {
-            data["userAssigments"] = [];
-            for (let item of this.userAssigments)
-                data["userAssigments"].push(item.toJSON());
-        }
-        data["yearOfStudy"] = this.yearOfStudy;
-        data["semesterCode"] = this.semesterCode;
-        data["dateStart"] = this.dateStart ? this.dateStart.toISOString() : <any>undefined;
-        data["dateEnd"] = this.dateEnd ? this.dateEnd.toISOString() : <any>undefined;
-        data["dateCreated"] = this.dateCreated ? this.dateCreated.toISOString() : <any>undefined;
-        return data;
-    }
-}
-
-export interface ICourseGroup {
-    courseGroupId?: number;
-    courseId?: number;
-    course?: Course;
-    courseGroupType?: string;
-    courseGroupName?: string;
-    courseGroupDescription?: string | undefined;
-    teacherUserId?: number | undefined;
-    teacherUser?: User;
-    sessions?: CourseSession[] | undefined;
-    attenderGroupAssigments?: CourseGroupAttenderGroupAssigment[] | undefined;
-    userAssigments?: CourseGroupUserAssigment[] | undefined;
-    yearOfStudy?: number;
-    semesterCode?: string | undefined;
-    dateStart?: Date;
-    dateEnd?: Date;
-    dateCreated?: Date;
-}
-
-export class CourseGroupAttenderGroupAssigment implements ICourseGroupAttenderGroupAssigment {
+  }
+  
+  export interface CourseGroupAttenderGroupAssigment {
     courseGroupAttenderGroupAssigmentId?: number;
     courseGroupId?: number;
     attenderGroupId?: number | undefined;
@@ -1679,59 +1953,9 @@ export class CourseGroupAttenderGroupAssigment implements ICourseGroupAttenderGr
     readonly dateCreated?: Date;
     courseGroup?: CourseGroup;
     attenderGroup?: AttenderGroup;
-
-    constructor(data?: ICourseGroupAttenderGroupAssigment) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.courseGroupAttenderGroupAssigmentId = _data["courseGroupAttenderGroupAssigmentId"];
-            this.courseGroupId = _data["courseGroupId"];
-            this.attenderGroupId = _data["attenderGroupId"];
-            this.isExcluded = _data["isExcluded"];
-            (<any>this).dateCreated = _data["dateCreated"] ? new Date(_data["dateCreated"].toString()) : <any>undefined;
-            this.courseGroup = _data["courseGroup"] ? CourseGroup.fromJS(_data["courseGroup"]) : <any>undefined;
-            this.attenderGroup = _data["attenderGroup"] ? AttenderGroup.fromJS(_data["attenderGroup"]) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): CourseGroupAttenderGroupAssigment {
-        data = typeof data === 'object' ? data : {};
-        let result = new CourseGroupAttenderGroupAssigment();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["courseGroupAttenderGroupAssigmentId"] = this.courseGroupAttenderGroupAssigmentId;
-        data["courseGroupId"] = this.courseGroupId;
-        data["attenderGroupId"] = this.attenderGroupId;
-        data["isExcluded"] = this.isExcluded;
-        data["dateCreated"] = this.dateCreated ? this.dateCreated.toISOString() : <any>undefined;
-        data["courseGroup"] = this.courseGroup ? this.courseGroup.toJSON() : <any>undefined;
-        data["attenderGroup"] = this.attenderGroup ? this.attenderGroup.toJSON() : <any>undefined;
-        return data;
-    }
-}
-
-export interface ICourseGroupAttenderGroupAssigment {
-    courseGroupAttenderGroupAssigmentId?: number;
-    courseGroupId?: number;
-    attenderGroupId?: number | undefined;
-    isExcluded?: boolean;
-    dateCreated?: Date;
-    courseGroup?: CourseGroup;
-    attenderGroup?: AttenderGroup;
-}
-
-export class CourseGroupUserAssigment implements ICourseGroupUserAssigment {
+  }
+  
+  export interface CourseGroupUserAssigment {
     courseGroupUserAssigmentId?: number;
     courseGroupId?: number;
     courseGroup?: CourseGroup;
@@ -1739,59 +1963,9 @@ export class CourseGroupUserAssigment implements ICourseGroupUserAssigment {
     readonly dateCreated?: Date;
     isExcluded?: boolean;
     user?: User;
-
-    constructor(data?: ICourseGroupUserAssigment) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.courseGroupUserAssigmentId = _data["courseGroupUserAssigmentId"];
-            this.courseGroupId = _data["courseGroupId"];
-            this.courseGroup = _data["courseGroup"] ? CourseGroup.fromJS(_data["courseGroup"]) : <any>undefined;
-            this.userId = _data["userId"];
-            (<any>this).dateCreated = _data["dateCreated"] ? new Date(_data["dateCreated"].toString()) : <any>undefined;
-            this.isExcluded = _data["isExcluded"];
-            this.user = _data["user"] ? User.fromJS(_data["user"]) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): CourseGroupUserAssigment {
-        data = typeof data === 'object' ? data : {};
-        let result = new CourseGroupUserAssigment();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["courseGroupUserAssigmentId"] = this.courseGroupUserAssigmentId;
-        data["courseGroupId"] = this.courseGroupId;
-        data["courseGroup"] = this.courseGroup ? this.courseGroup.toJSON() : <any>undefined;
-        data["userId"] = this.userId;
-        data["dateCreated"] = this.dateCreated ? this.dateCreated.toISOString() : <any>undefined;
-        data["isExcluded"] = this.isExcluded;
-        data["user"] = this.user ? this.user.toJSON() : <any>undefined;
-        return data;
-    }
-}
-
-export interface ICourseGroupUserAssigment {
-    courseGroupUserAssigmentId?: number;
-    courseGroupId?: number;
-    courseGroup?: CourseGroup;
-    userId?: number | undefined;
-    dateCreated?: Date;
-    isExcluded?: boolean;
-    user?: User;
-}
-
-export class CourseSession implements ICourseSession {
+  }
+  
+  export interface CourseSession {
     courseSessionId?: number;
     courseGroupId?: number;
     courseGroup?: CourseGroup;
@@ -1800,70 +1974,9 @@ export class CourseSession implements ICourseSession {
     dateEnd?: Date;
     readonly dateCreated?: Date;
     attendanceLogs?: AttendanceLog[];
-
-    constructor(data?: ICourseSession) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.courseSessionId = _data["courseSessionId"];
-            this.courseGroupId = _data["courseGroupId"];
-            this.courseGroup = _data["courseGroup"] ? CourseGroup.fromJS(_data["courseGroup"]) : <any>undefined;
-            this.locationName = _data["locationName"];
-            this.dateStart = _data["dateStart"] ? new Date(_data["dateStart"].toString()) : <any>undefined;
-            this.dateEnd = _data["dateEnd"] ? new Date(_data["dateEnd"].toString()) : <any>undefined;
-            (<any>this).dateCreated = _data["dateCreated"] ? new Date(_data["dateCreated"].toString()) : <any>undefined;
-            if (Array.isArray(_data["attendanceLogs"])) {
-                this.attendanceLogs = [] as any;
-                for (let item of _data["attendanceLogs"])
-                    this.attendanceLogs!.push(AttendanceLog.fromJS(item));
-            }
-        }
-    }
-
-    static fromJS(data: any): CourseSession {
-        data = typeof data === 'object' ? data : {};
-        let result = new CourseSession();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["courseSessionId"] = this.courseSessionId;
-        data["courseGroupId"] = this.courseGroupId;
-        data["courseGroup"] = this.courseGroup ? this.courseGroup.toJSON() : <any>undefined;
-        data["locationName"] = this.locationName;
-        data["dateStart"] = this.dateStart ? this.dateStart.toISOString() : <any>undefined;
-        data["dateEnd"] = this.dateEnd ? this.dateEnd.toISOString() : <any>undefined;
-        data["dateCreated"] = this.dateCreated ? this.dateCreated.toISOString() : <any>undefined;
-        if (Array.isArray(this.attendanceLogs)) {
-            data["attendanceLogs"] = [];
-            for (let item of this.attendanceLogs)
-                data["attendanceLogs"].push(item.toJSON());
-        }
-        return data;
-    }
-}
-
-export interface ICourseSession {
-    courseSessionId?: number;
-    courseGroupId?: number;
-    courseGroup?: CourseGroup;
-    locationName?: string;
-    dateStart?: Date;
-    dateEnd?: Date;
-    dateCreated?: Date;
-    attendanceLogs?: AttendanceLog[];
-}
-
-export class CourseSessionAttendanceRecord implements ICourseSessionAttendanceRecord {
+  }
+  
+  export interface CourseSessionAttendanceRecord {
     attendanceLogId?: number | undefined;
     courseSessionId?: number;
     attenderUserId?: number | undefined;
@@ -1872,166 +1985,25 @@ export class CourseSessionAttendanceRecord implements ICourseSessionAttendanceRe
     studentAlbumIdNumber?: number | undefined;
     attendanceLogMinDateCreated?: Date | undefined;
     readonly wasUserPresent?: boolean;
-
-    constructor(data?: ICourseSessionAttendanceRecord) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.attendanceLogId = _data["attendanceLogId"];
-            this.courseSessionId = _data["courseSessionId"];
-            this.attenderUserId = _data["attenderUserId"];
-            this.userName = _data["userName"];
-            this.userSurname = _data["userSurname"];
-            this.studentAlbumIdNumber = _data["studentAlbumIdNumber"];
-            this.attendanceLogMinDateCreated = _data["attendanceLogMinDateCreated"] ? new Date(_data["attendanceLogMinDateCreated"].toString()) : <any>undefined;
-            (<any>this).wasUserPresent = _data["wasUserPresent"];
-        }
-    }
-
-    static fromJS(data: any): CourseSessionAttendanceRecord {
-        data = typeof data === 'object' ? data : {};
-        let result = new CourseSessionAttendanceRecord();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["attendanceLogId"] = this.attendanceLogId;
-        data["courseSessionId"] = this.courseSessionId;
-        data["attenderUserId"] = this.attenderUserId;
-        data["userName"] = this.userName;
-        data["userSurname"] = this.userSurname;
-        data["studentAlbumIdNumber"] = this.studentAlbumIdNumber;
-        data["attendanceLogMinDateCreated"] = this.attendanceLogMinDateCreated ? this.attendanceLogMinDateCreated.toISOString() : <any>undefined;
-        data["wasUserPresent"] = this.wasUserPresent;
-        return data;
-    }
-}
-
-export interface ICourseSessionAttendanceRecord {
-    attendanceLogId?: number | undefined;
-    courseSessionId?: number;
-    attenderUserId?: number | undefined;
-    userName?: string | undefined;
-    userSurname?: string | undefined;
-    studentAlbumIdNumber?: number | undefined;
-    attendanceLogMinDateCreated?: Date | undefined;
-    wasUserPresent?: boolean;
-}
-
-export class CourseSessionListFilters implements ICourseSessionListFilters {
+  }
+  
+  export interface CourseSessionListFilters {
     search?: string | undefined;
     courseName?: string | undefined;
     courseGroupName?: string | undefined;
     locationName?: string | undefined;
     dateStart?: Date | undefined;
     dateEnd?: Date | undefined;
-
-    constructor(data?: ICourseSessionListFilters) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.search = _data["search"];
-            this.courseName = _data["courseName"];
-            this.courseGroupName = _data["courseGroupName"];
-            this.locationName = _data["locationName"];
-            this.dateStart = _data["dateStart"] ? new Date(_data["dateStart"].toString()) : <any>undefined;
-            this.dateEnd = _data["dateEnd"] ? new Date(_data["dateEnd"].toString()) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): CourseSessionListFilters {
-        data = typeof data === 'object' ? data : {};
-        let result = new CourseSessionListFilters();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["search"] = this.search;
-        data["courseName"] = this.courseName;
-        data["courseGroupName"] = this.courseGroupName;
-        data["locationName"] = this.locationName;
-        data["dateStart"] = this.dateStart ? this.dateStart.toISOString() : <any>undefined;
-        data["dateEnd"] = this.dateEnd ? this.dateEnd.toISOString() : <any>undefined;
-        return data;
-    }
-}
-
-export interface ICourseSessionListFilters {
-    search?: string | undefined;
-    courseName?: string | undefined;
-    courseGroupName?: string | undefined;
-    locationName?: string | undefined;
-    dateStart?: Date | undefined;
-    dateEnd?: Date | undefined;
-}
-
-export class CourseSessionListFiltersPagedListParams implements ICourseSessionListFiltersPagedListParams {
-    pageNumber!: number;
-    pageSize!: number;
-    filters?: CourseSessionListFilters;
-    sortBy?: string | undefined;
-
-    constructor(data?: ICourseSessionListFiltersPagedListParams) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.pageNumber = _data["pageNumber"];
-            this.pageSize = _data["pageSize"];
-            this.filters = _data["filters"] ? CourseSessionListFilters.fromJS(_data["filters"]) : <any>undefined;
-            this.sortBy = _data["sortBy"];
-        }
-    }
-
-    static fromJS(data: any): CourseSessionListFiltersPagedListParams {
-        data = typeof data === 'object' ? data : {};
-        let result = new CourseSessionListFiltersPagedListParams();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["pageNumber"] = this.pageNumber;
-        data["pageSize"] = this.pageSize;
-        data["filters"] = this.filters ? this.filters.toJSON() : <any>undefined;
-        data["sortBy"] = this.sortBy;
-        return data;
-    }
-}
-
-export interface ICourseSessionListFiltersPagedListParams {
+  }
+  
+  export interface CourseSessionListFiltersPagedListParams {
     pageNumber: number;
     pageSize: number;
     filters?: CourseSessionListFilters;
     sortBy?: string | undefined;
-}
-
-export class CourseSessionListItem implements ICourseSessionListItem {
+  }
+  
+  export interface CourseSessionListItem {
     readonly courseId?: number;
     readonly courseName?: string;
     readonly courseGroupId?: number;
@@ -2040,465 +2012,66 @@ export class CourseSessionListItem implements ICourseSessionListItem {
     readonly locationName?: string;
     readonly dateStart?: Date;
     readonly dateEnd?: Date;
-
-    constructor(data?: ICourseSessionListItem) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            (<any>this).courseId = _data["courseId"];
-            (<any>this).courseName = _data["courseName"];
-            (<any>this).courseGroupId = _data["courseGroupId"];
-            (<any>this).courseGroupName = _data["courseGroupName"];
-            (<any>this).courseSessionId = _data["courseSessionId"];
-            (<any>this).locationName = _data["locationName"];
-            (<any>this).dateStart = _data["dateStart"] ? new Date(_data["dateStart"].toString()) : <any>undefined;
-            (<any>this).dateEnd = _data["dateEnd"] ? new Date(_data["dateEnd"].toString()) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): CourseSessionListItem {
-        data = typeof data === 'object' ? data : {};
-        let result = new CourseSessionListItem();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["courseId"] = this.courseId;
-        data["courseName"] = this.courseName;
-        data["courseGroupId"] = this.courseGroupId;
-        data["courseGroupName"] = this.courseGroupName;
-        data["courseSessionId"] = this.courseSessionId;
-        data["locationName"] = this.locationName;
-        data["dateStart"] = this.dateStart ? this.dateStart.toISOString() : <any>undefined;
-        data["dateEnd"] = this.dateEnd ? this.dateEnd.toISOString() : <any>undefined;
-        return data;
-    }
-}
-
-export interface ICourseSessionListItem {
-    courseId?: number;
-    courseName?: string;
-    courseGroupId?: number;
-    courseGroupName?: string;
-    courseSessionId?: number;
-    locationName?: string;
-    dateStart?: Date;
-    dateEnd?: Date;
-}
-
-export class CourseSessionListItemPagedList implements ICourseSessionListItemPagedList {
-    items!: CourseSessionListItem[];
-    totalCount!: number;
-    pageNumber!: number;
-    pageSize!: number;
-    readonly totalPages!: number;
-
-    constructor(data?: ICourseSessionListItemPagedList) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-        if (!data) {
-            this.items = [];
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            if (Array.isArray(_data["items"])) {
-                this.items = [] as any;
-                for (let item of _data["items"])
-                    this.items!.push(CourseSessionListItem.fromJS(item));
-            }
-            this.totalCount = _data["totalCount"];
-            this.pageNumber = _data["pageNumber"];
-            this.pageSize = _data["pageSize"];
-            (<any>this).totalPages = _data["totalPages"];
-        }
-    }
-
-    static fromJS(data: any): CourseSessionListItemPagedList {
-        data = typeof data === 'object' ? data : {};
-        let result = new CourseSessionListItemPagedList();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        if (Array.isArray(this.items)) {
-            data["items"] = [];
-            for (let item of this.items)
-                data["items"].push(item.toJSON());
-        }
-        data["totalCount"] = this.totalCount;
-        data["pageNumber"] = this.pageNumber;
-        data["pageSize"] = this.pageSize;
-        data["totalPages"] = this.totalPages;
-        return data;
-    }
-}
-
-export interface ICourseSessionListItemPagedList {
+  }
+  
+  export interface CourseSessionListItemPagedList {
     items: CourseSessionListItem[];
     totalCount: number;
     pageNumber: number;
     pageSize: number;
-    totalPages: number;
-}
-
-export class DeviceRegisterDTO implements IDeviceRegisterDTO {
+    readonly totalPages: number;
+  }
+  
+  export interface DeviceRegisterDTO {
     deviceName?: string;
     studentName?: string;
     studentSurname?: string;
     albumIdNumber?: number;
-
-    constructor(data?: IDeviceRegisterDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.deviceName = _data["deviceName"];
-            this.studentName = _data["studentName"];
-            this.studentSurname = _data["studentSurname"];
-            this.albumIdNumber = _data["albumIdNumber"];
-        }
-    }
-
-    static fromJS(data: any): DeviceRegisterDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new DeviceRegisterDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["deviceName"] = this.deviceName;
-        data["studentName"] = this.studentName;
-        data["studentSurname"] = this.studentSurname;
-        data["albumIdNumber"] = this.albumIdNumber;
-        return data;
-    }
-}
-
-export interface IDeviceRegisterDTO {
-    deviceName?: string;
-    studentName?: string;
-    studentSurname?: string;
-    albumIdNumber?: number;
-}
-
-export class ProblemDetails implements IProblemDetails {
+  }
+  
+  export interface ProblemDetails {
     type?: string | undefined;
     title?: string | undefined;
     status?: number | undefined;
     detail?: string | undefined;
     instance?: string | undefined;
-
+  
     [key: string]: any;
-
-    constructor(data?: IProblemDetails) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.type = _data["type"];
-            this.title = _data["title"];
-            this.status = _data["status"];
-            this.detail = _data["detail"];
-            this.instance = _data["instance"];
-        }
-    }
-
-    static fromJS(data: any): ProblemDetails {
-        data = typeof data === 'object' ? data : {};
-        let result = new ProblemDetails();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["type"] = this.type;
-        data["title"] = this.title;
-        data["status"] = this.status;
-        data["detail"] = this.detail;
-        data["instance"] = this.instance;
-        return data;
-    }
-}
-
-export interface IProblemDetails {
-    type?: string | undefined;
-    title?: string | undefined;
-    status?: number | undefined;
-    detail?: string | undefined;
-    instance?: string | undefined;
-
-    [key: string]: any;
-}
-
-export class Student implements IStudent {
+  }
+  
+  export interface Student {
     studentId?: number;
     albumIdNumber?: number;
     currentYearOfStudy?: number;
     readonly dateCreated?: Date;
-
-    constructor(data?: IStudent) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.studentId = _data["studentId"];
-            this.albumIdNumber = _data["albumIdNumber"];
-            this.currentYearOfStudy = _data["currentYearOfStudy"];
-            (<any>this).dateCreated = _data["dateCreated"] ? new Date(_data["dateCreated"].toString()) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): Student {
-        data = typeof data === 'object' ? data : {};
-        let result = new Student();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["studentId"] = this.studentId;
-        data["albumIdNumber"] = this.albumIdNumber;
-        data["currentYearOfStudy"] = this.currentYearOfStudy;
-        data["dateCreated"] = this.dateCreated ? this.dateCreated.toISOString() : <any>undefined;
-        return data;
-    }
-}
-
-export interface IStudent {
-    studentId?: number;
-    albumIdNumber?: number;
-    currentYearOfStudy?: number;
-    dateCreated?: Date;
-}
-
-export class StudentUserDTO implements IStudentUserDTO {
+  }
+  
+  export interface StudentUserDTO {
     readonly userId?: number;
     name?: string;
     surname?: string;
     albumIdNumber?: number;
-
-    constructor(data?: IStudentUserDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            (<any>this).userId = _data["userId"];
-            this.name = _data["name"];
-            this.surname = _data["surname"];
-            this.albumIdNumber = _data["albumIdNumber"];
-        }
-    }
-
-    static fromJS(data: any): StudentUserDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new StudentUserDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["userId"] = this.userId;
-        data["name"] = this.name;
-        data["surname"] = this.surname;
-        data["albumIdNumber"] = this.albumIdNumber;
-        return data;
-    }
-}
-
-export interface IStudentUserDTO {
-    userId?: number;
-    name?: string;
-    surname?: string;
-    albumIdNumber?: number;
-}
-
-export class Teacher implements ITeacher {
+  }
+  
+  export interface Teacher {
     teacherId?: number;
     academicTitle?: string;
     readonly dateCreated?: Date;
-
-    constructor(data?: ITeacher) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.teacherId = _data["teacherId"];
-            this.academicTitle = _data["academicTitle"];
-            (<any>this).dateCreated = _data["dateCreated"] ? new Date(_data["dateCreated"].toString()) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): Teacher {
-        data = typeof data === 'object' ? data : {};
-        let result = new Teacher();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["teacherId"] = this.teacherId;
-        data["academicTitle"] = this.academicTitle;
-        data["dateCreated"] = this.dateCreated ? this.dateCreated.toISOString() : <any>undefined;
-        return data;
-    }
-}
-
-export interface ITeacher {
-    teacherId?: number;
-    academicTitle?: string;
-    dateCreated?: Date;
-}
-
-export class TeacherUserDTO implements ITeacherUserDTO {
+  }
+  
+  export interface TeacherUserDTO {
     readonly userId?: number;
     name?: string;
     surname?: string;
     academicTitle?: string;
-
-    constructor(data?: ITeacherUserDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            (<any>this).userId = _data["userId"];
-            this.name = _data["name"];
-            this.surname = _data["surname"];
-            this.academicTitle = _data["academicTitle"];
-        }
-    }
-
-    static fromJS(data: any): TeacherUserDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new TeacherUserDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["userId"] = this.userId;
-        data["name"] = this.name;
-        data["surname"] = this.surname;
-        data["academicTitle"] = this.academicTitle;
-        return data;
-    }
-}
-
-export interface ITeacherUserDTO {
-    userId?: number;
-    name?: string;
-    surname?: string;
-    academicTitle?: string;
-}
-
-export class TokenResult implements ITokenResult {
+  }
+  
+  export interface TokenResult {
     token?: string;
     expires?: Date | undefined;
-
-    constructor(data?: ITokenResult) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.token = _data["token"];
-            this.expires = _data["expires"] ? new Date(_data["expires"].toString()) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): TokenResult {
-        data = typeof data === 'object' ? data : {};
-        let result = new TokenResult();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["token"] = this.token;
-        data["expires"] = this.expires ? this.expires.toISOString() : <any>undefined;
-        return data;
-    }
-}
-
-export interface ITokenResult {
-    token?: string;
-    expires?: Date | undefined;
-}
-
-export class User implements IUser {
+  }
+  
+  export interface User {
     userId?: number;
     loginName?: string;
     name?: string | undefined;
@@ -2512,103 +2085,46 @@ export class User implements IUser {
     readonly dateCreated?: Date;
     deviceName?: string | undefined;
     isAdmin?: boolean;
-
-    constructor(data?: IUser) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.userId = _data["userId"];
-            this.loginName = _data["loginName"];
-            this.name = _data["name"];
-            this.surname = _data["surname"];
-            this.studentId = _data["studentId"];
-            this.teacherId = _data["teacherId"];
-            this.student = _data["student"] ? Student.fromJS(_data["student"]) : <any>undefined;
-            (<any>this).isStudent = _data["isStudent"];
-            this.teacher = _data["teacher"] ? Teacher.fromJS(_data["teacher"]) : <any>undefined;
-            (<any>this).isTeacher = _data["isTeacher"];
-            (<any>this).dateCreated = _data["dateCreated"] ? new Date(_data["dateCreated"].toString()) : <any>undefined;
-            this.deviceName = _data["deviceName"];
-            this.isAdmin = _data["isAdmin"];
-        }
-    }
-
-    static fromJS(data: any): User {
-        data = typeof data === 'object' ? data : {};
-        let result = new User();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["userId"] = this.userId;
-        data["loginName"] = this.loginName;
-        data["name"] = this.name;
-        data["surname"] = this.surname;
-        data["studentId"] = this.studentId;
-        data["teacherId"] = this.teacherId;
-        data["student"] = this.student ? this.student.toJSON() : <any>undefined;
-        data["isStudent"] = this.isStudent;
-        data["teacher"] = this.teacher ? this.teacher.toJSON() : <any>undefined;
-        data["isTeacher"] = this.isTeacher;
-        data["dateCreated"] = this.dateCreated ? this.dateCreated.toISOString() : <any>undefined;
-        data["deviceName"] = this.deviceName;
-        data["isAdmin"] = this.isAdmin;
-        return data;
-    }
-}
-
-export interface IUser {
-    userId?: number;
-    loginName?: string;
-    name?: string | undefined;
-    surname?: string | undefined;
-    studentId?: number | undefined;
-    teacherId?: number | undefined;
-    student?: Student;
-    isStudent?: boolean;
-    teacher?: Teacher;
-    isTeacher?: boolean;
-    dateCreated?: Date;
-    deviceName?: string | undefined;
-    isAdmin?: boolean;
-}
-
-export class ApiException extends Error {
-    message: string;
+  }
+  
+  export class ApiException extends Error {
+    override message: string;
     status: number;
     response: string;
-    headers: { [key: string]: any; };
+    headers: { [key: string]: any };
     result: any;
-
-    constructor(message: string, status: number, response: string, headers: { [key: string]: any; }, result: any) {
-        super();
-
-        this.message = message;
-        this.status = status;
-        this.response = response;
-        this.headers = headers;
-        this.result = result;
+  
+    constructor(
+      message: string,
+      status: number,
+      response: string,
+      headers: { [key: string]: any },
+      result: any
+    ) {
+      super();
+  
+      this.message = message;
+      this.status = status;
+      this.response = response;
+      this.headers = headers;
+      this.result = result;
     }
-
+  
     protected isApiException = true;
-
+  
     static isApiException(obj: any): obj is ApiException {
-        return obj.isApiException === true;
+      return obj.isApiException === true;
     }
-}
-
-function throwException(message: string, status: number, response: string, headers: { [key: string]: any; }, result?: any): any {
-    if (result !== null && result !== undefined)
-        throw result;
-    else
-        throw new ApiException(message, status, response, headers, null);
-}
+  }
+  
+  function throwException(
+    message: string,
+    status: number,
+    response: string,
+    headers: { [key: string]: any },
+    result?: any
+  ): any {
+    if (result !== null && result !== undefined) throw result;
+    else throw new ApiException(message, status, response, headers, null);
+  }
+  

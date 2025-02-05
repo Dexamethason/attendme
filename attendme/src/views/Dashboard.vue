@@ -6,7 +6,7 @@
           <div class="avatar" @click="toggleDropdown">PK</div>
           <div class="dropdown" v-if="showDropdown">
             <p class="user-name">Paweł Kołodziej</p>
-            <button @click="logout">Wyloguj</button>
+            <button class="logout-button" @click="logout">Wyloguj</button>
           </div>
         </div>
       </header>
@@ -51,6 +51,19 @@ import type { CourseSessionListItem } from '@/services/attendmeClient'
 import { AttendMeBackendClient } from '@/services/attendmeClient'
 
 const router = useRouter()
+const client = new AttendMeBackendClient('https://attendme-backend.runasp.net', {
+  fetch: async (url: RequestInfo, init?: RequestInit) => {
+    const token = localStorage.getItem('authToken')
+    if (token) {
+      init = init || {}
+      init.headers = {
+        ...init.headers,
+        'Authorization': `Bearer ${token}`
+      }
+    }
+    return window.fetch(url, init)
+  }
+})
 const courses = ref<CourseSessionListItem[]>([])
 const selectedFilter = ref('')
 const searchQuery = ref('')
@@ -76,17 +89,13 @@ const fetchCourses = async () => {
     let dateStart = getDateFilter(selectedFilter.value)
     let dateEnd: Date | undefined = undefined
 
-    // Minione
     if (selectedFilter.value === 'past') {
       dateEnd = today 
     } 
-    // Dzisiaj
     else if (selectedFilter.value === 'today') {
       dateEnd = new Date(today)
       dateEnd.setHours(23, 59, 59, 999)
     }
-
-    // Przyszłe zajęcia
     else if (dateStart) {
       if (selectedFilter.value === 'nextWeek') {
         dateEnd = new Date(dateStart)
@@ -107,8 +116,13 @@ const fetchCourses = async () => {
       }
     }
 
-    const response = await getTeacherSessions(filter)
-    courses.value = response || []
+    if (userRole.value === 'teacher') {
+      const response = await getTeacherSessions(filter)
+      courses.value = response || []
+    } else {
+      const response = await client.courseStudentSessionsGet(filter)
+      courses.value = response.items || []
+    }
   } catch (err) {
     console.error('Błąd podczas pobierania zajęć:', err)
     error.value = 'Nie udało się pobrać listy zajęć'
@@ -158,7 +172,11 @@ const formatDate = (date: Date | undefined): string => {
 }
 
 const goToCourseDetails = (id: number) => {
-  router.push(`/course/${id}`)
+  if (userRole.value === 'teacher') {
+    router.push(`/course/${id}`)
+  } else {
+    router.push(`/student/course/${id}`)
+  }
 }
 
 const toggleDropdown = () => {
@@ -178,18 +196,6 @@ const getUserRole = async () => {
       return
     }
 
-    const client = new AttendMeBackendClient('https://attendme-backend.runasp.net', {
-      fetch: (url, init) => {
-        if (init) {
-          init.headers = {
-            ...init.headers,
-            'Authorization': `Bearer ${token}`
-          }
-        }
-        return window.fetch(url, init)
-      }
-    })
-
     const user = await client.userGet()
     userRole.value = user.isTeacher ? 'teacher' : 'student'
     console.log('Rola użytkownika:', userRole.value)
@@ -206,7 +212,6 @@ onMounted(() => {
     return
   }
   
-  userRole.value = localStorage.getItem('userRole') || ''
   fetchCourses()
   getUserRole()
 })
@@ -354,6 +359,35 @@ watch(searchQuery, () => {
     background: #333;
     border-radius: 4px;
     font-size: 14px;
+  }
+  .dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: #2a2a2a;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    min-width: 200px;
+  }
+  .user-name {
+    margin: 0 0 10px 0;
+    padding: 5px 0;
+    border-bottom: 1px solid #444;
+  }
+  .logout-button {
+    width: 100%;
+    padding: 8px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+  }
+  .logout-button:hover {
+    background: #c82333;
   }
   </style>
   

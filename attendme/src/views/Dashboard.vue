@@ -2,6 +2,7 @@
     <div class="dashboard">
       <header class="header">
         <div class="user-menu">
+          <div class="role-indicator">{{ userRole === 'teacher' ? 'Nauczyciel' : 'Student' }}</div>
           <div class="avatar" @click="toggleDropdown">PK</div>
           <div class="dropdown" v-if="showDropdown">
             <p class="user-name">Paweł Kołodziej</p>
@@ -47,6 +48,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getTeacherSessions } from '@/services/courseService'
 import type { CourseSessionListItem } from '@/services/attendmeClient'
+import { AttendMeBackendClient } from '@/services/attendmeClient'
 
 const router = useRouter()
 const courses = ref<CourseSessionListItem[]>([])
@@ -55,6 +57,7 @@ const searchQuery = ref('')
 const showDropdown = ref(false)
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const userRole = ref<string>('')
 
 const fetchCourses = async () => {
   try {
@@ -128,13 +131,45 @@ const logout = () => {
   router.push('/login')
 }
 
+const getUserRole = async () => {
+  try {
+    const token = localStorage.getItem('authToken')
+    if (!token) {
+      router.push('/login')
+      return
+    }
+
+    const client = new AttendMeBackendClient('https://attendme-backend.runasp.net', {
+      fetch: (url, init) => {
+        if (init) {
+          init.headers = {
+            ...init.headers,
+            'Authorization': `Bearer ${token}`
+          }
+        }
+        return window.fetch(url, init)
+      }
+    })
+
+    const user = await client.userGet()
+    userRole.value = user.isTeacher ? 'teacher' : 'student'
+    console.log('Rola użytkownika:', userRole.value)
+  } catch (err) {
+    console.error('Błąd podczas pobierania roli użytkownika:', err)
+    error.value = 'Nie udało się pobrać informacji o użytkowniku'
+  }
+}
+
 onMounted(() => {
   const token = localStorage.getItem('authToken')
   if (!token) {
     router.push('/login')
     return
   }
+  
+  userRole.value = localStorage.getItem('userRole') || ''
   fetchCourses()
+  getUserRole()
 })
 </script>
   
@@ -264,6 +299,13 @@ onMounted(() => {
     font-size: 18px;
     color: #888;
     margin-top: 20px;
+  }
+  .role-indicator {
+    margin-right: 10px;
+    padding: 5px 10px;
+    background: #333;
+    border-radius: 4px;
+    font-size: 14px;
   }
   </style>
   

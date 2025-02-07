@@ -1,6 +1,6 @@
 <template>
     <div class="dashboard">
-      <Navbar :userRole="userRole" :userName="userName" />
+      <Navbar :userRole="userRole" :userName="userName" :userSurname="userSurname" />
       <div class="content">
         <div class="filters-container">
           <h2>Filtry</h2>
@@ -63,6 +63,7 @@ const isLoading = ref(false)
 const error = ref<string | null>(null)
 const userRole = ref<string>('')
 const userName = ref<string>('')
+const userSurname = ref<string>('')
 
 const fetchCourses = async () => {
   try {
@@ -191,6 +192,7 @@ const getUserRole = async () => {
     const user = await client.userGet()
     userRole.value = user.isTeacher ? 'teacher' : 'student'
     userName.value = user.name
+    userSurname.value = user.surname
     console.log('Rola użytkownika:', userRole.value)
   } catch (err) {
     console.error('Błąd podczas pobierania roli użytkownika:', err)

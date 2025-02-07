@@ -10,7 +10,7 @@
       <div class="role-indicator">{{ userRole === 'teacher' ? 'Wykładowca' : 'Student' }}</div>
       <div class="avatar" @click="toggleDropdown">{{ userInitials }}</div>
       <div class="dropdown" v-if="showDropdown">
-        <p class="user-name">{{ userName }}</p>
+        <p class="user-name">{{ userName }} {{ userSurname }}</p>
         <button class="logout-button" @click="logout">Wyloguj</button>
       </div>
     </div>
@@ -24,6 +24,7 @@ import { useRouter, useRoute } from 'vue-router'
 const props = defineProps<{
   userRole?: string
   userName?: string
+  userSurname?: string
 }>()
 
 const router = useRouter()

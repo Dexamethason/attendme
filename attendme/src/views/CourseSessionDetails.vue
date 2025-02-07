@@ -1,46 +1,70 @@
 <template>
-  <div class="session-details">
-    <div v-if="isLoading" class="loading">Ładowanie...</div>
-    <div v-else-if="error" class="error">{{ error }}</div>
-    <div v-else>
-      <header class="session-header">
-        <h1>{{ session?.courseName }}</h1>
-        <div class="session-info">
-          <p>Grupa: {{ session?.courseGroupName }}</p>
-          <p>Sala: {{ session?.locationName }}</p>
-          <p>Data: {{ formatDate(session?.dateStart) }}</p>
-        </div>
-        <router-link :to="`/course/${sessionId}/scan`" class="scan-link">
-          Ekran skanowania
-        </router-link>
-      </header>
+  <div class="page-container">
+    <Navbar :userRole="userRole" :userName="userName" />
+    <div class="session-details">
+      <div v-if="isLoading" class="loading">Ładowanie...</div>
+      <div v-else-if="error" class="error">{{ error }}</div>
+      <div v-else>
+        <header class="session-header">
+          <h1>{{ session?.courseName }}</h1>
+          <div class="session-info">
+            <p>Grupa: {{ session?.courseGroupName }}</p>
+            <p>Sala: {{ session?.locationName }}</p>
+            <p>Data: {{ formatDate(session?.dateStart) }}</p>
+          </div>
+          <router-link :to="`/course/${sessionId}/scan`" class="scan-link">
+            Ekran skanowania
+          </router-link>
+        </header>
 
-      <div class="attendance-section">
-        <div class="attendance-header">
-          <h2>Lista obecności</h2>
-          <button @click="refreshAttendance" :disabled="isRefreshing">
-            {{ isRefreshing ? 'Odświeżanie...' : 'Odśwież' }}
-          </button>
-        </div>
+        <div class="attendance-section">
+          <div class="attendance-header">
+            <h2>Lista obecności</h2>
+            <button @click="refreshAttendance" :disabled="isRefreshing">
+              {{ isRefreshing ? 'Odświeżanie...' : 'Odśwież' }}
+            </button>
+          </div>
 
-        <table class="attendance-table">
-          <thead>
-            <tr>
-              <th>Imię i Nazwisko</th>
-              <th>Nr indeksu</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="record in attendanceList" :key="record.attenderUserId">
-              <td>{{ record.userName }} {{ record.userSurname }}</td>
-              <td>{{ record.studentAlbumIdNumber }}</td>
-              <td :class="{ present: record.wasUserPresent, 'status-cell': true }">
-                {{ record.wasUserPresent ? 'Obecny' : 'Nieobecny' }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+          <table class="attendance-table">
+            <thead>
+              <tr>
+                <th>Imię i Nazwisko</th>
+                <th>Nr indeksu</th>
+                <th>Akcje</th>
+                <th>Reset urządzenia</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="record in attendanceList" :key="record.attenderUserId">
+                <td>{{ record.userName }} {{ record.userSurname }}</td>
+                <td>{{ record.studentAlbumIdNumber }}</td>
+                <td class="actions-cell">
+                  <button 
+                    @click="generateAuthLink(record.attenderUserId)" 
+                    class="auth-link-btn"
+                    :class="{ 'generated': authLinks[record.attenderUserId] }"
+                    :disabled="isGeneratingLink[record.attenderUserId]"
+                  >
+                    {{ isGeneratingLink[record.attenderUserId] ? 'Generowanie...' : 'Generuj link' }}
+                  </button>
+                </td>
+                <td class="actions-cell">
+                  <button 
+                    @click="resetDevice(record.attenderUserId)"
+                    class="reset-btn"
+                    :disabled="isResetting[record.attenderUserId]"
+                  >
+                    {{ isResetting[record.attenderUserId] ? 'Resetowanie...' : 'Resetuj' }}
+                  </button>
+                </td>
+                <td :class="{ present: record.wasUserPresent, 'status-cell': true }">
+                  {{ record.wasUserPresent ? 'Obecny' : 'Nieobecny' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -50,6 +74,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { AttendMeBackendClient, CourseSessionListItem, CourseSessionAttendanceRecord } from '@/services/attendmeClient'
+import Navbar from '@/components/Navbar.vue'
 
 const baseUrl = 'https://attendme-backend.runasp.net'
 const client = new AttendMeBackendClient(baseUrl, {
@@ -73,6 +98,9 @@ const attendanceList = ref<CourseSessionAttendanceRecord[]>([])
 const isLoading = ref(true)
 const isRefreshing = ref(false)
 const error = ref<string | null>(null)
+const authLinks = ref<{ [key: number]: string }>({})
+const isGeneratingLink = ref<{ [key: number]: boolean }>({})
+const isResetting = ref<{ [key: number]: boolean }>({})
 let refreshInterval: number | null = null
 
 const fetchSessionDetails = async () => {
@@ -100,6 +128,61 @@ const fetchAttendance = async () => {
 
 const refreshAttendance = () => {
   fetchAttendance()
+}
+
+const generateAuthLink = async (userId: number) => {
+  isGeneratingLink.value[userId] = true
+  try {
+    const response = await fetch(`${baseUrl}/user/device/register/token/get?deviceUserId=${userId}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+      }
+    })
+    
+    if (!response.ok) {
+      throw new Error('Błąd podczas generowania linku')
+    }
+    
+    const data = await response.json()
+    const registrationToken = data.token
+    const fullLink = `${window.location.origin}/device-registration?token=${registrationToken}`
+    authLinks.value[userId] = fullLink
+    
+    // Automatyczne kopiowanie do schowka
+    await navigator.clipboard.writeText(fullLink)
+  } catch (err) {
+    error.value = 'Nie udało się wygenerować linku uwierzytelniającego'
+    console.error('Błąd podczas generowania linku:', err)
+  } finally {
+    isGeneratingLink.value[userId] = false
+  }
+}
+
+const resetDevice = async (userId: number) => {
+  isResetting.value[userId] = true
+  try {
+    const response = await fetch(`${baseUrl}/user/device/reset?deviceUserId=${userId}`, {
+      method: 'POST',
+      headers: {
+        'accept': '*/*',
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+      },
+      mode: 'cors',
+      referrerPolicy: 'strict-origin-when-cross-origin'
+    })
+    
+    if (!response.ok) {
+      throw new Error('Błąd podczas resetowania urządzenia')
+    }
+    
+    // Odśwież listę obecności po resecie
+    await fetchAttendance()
+  } catch (err) {
+    console.error('Błąd podczas resetowania urządzenia:', err)
+    error.value = 'Nie udało się zresetować urządzenia'
+  } finally {
+    isResetting.value[userId] = false
+  }
 }
 
 const formatDate = (date: Date | undefined): string => {
@@ -238,5 +321,46 @@ button:disabled {
   color: #ff4444;
   text-align: center;
   padding: 20px;
+}
+
+.actions-cell {
+  text-align: left;
+}
+
+.auth-link-btn {
+  background: #1a73e8;
+  padding: 6px 12px;
+  font-size: 0.9em;
+  white-space: nowrap;
+  transition: background-color 0.3s ease;
+}
+
+.auth-link-btn.generated {
+  background: #4CAF50;
+}
+
+.auth-link-btn:disabled {
+  background: #404040;
+  cursor: not-allowed;
+}
+
+.reset-btn {
+  padding: 8px 16px;
+  background: #424242;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.reset-btn:hover {
+  background: #d32f2f;
+}
+
+.reset-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: #424242;
 }
 </style> 

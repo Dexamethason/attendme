@@ -1,32 +1,63 @@
 <template>
-  <div class="device-registration-page">
-    <header class="header">
-      <div class="user-menu">
-        <div class="role-indicator">Student</div>
-        <div class="avatar" @click="toggleDropdown">PK</div>
-        <div class="dropdown" v-if="showDropdown">
-          <p class="user-name">Paweł Kołodziej</p>
-          <button class="logout-button" @click="logout">Wyloguj</button>
-        </div>
-      </div>
-    </header>
-
+  <div class="page-container">
+    <Navbar :userRole="userRole" :userName="userName" />
     <div class="device-registration">
-      <h1>Rejestracja urządzenia</h1>
       <div v-if="isLoading" class="loading">Ładowanie...</div>
       <div v-else-if="error" class="error">{{ error }}</div>
-      <div v-else-if="isRegistered" class="success">
-        <p>Urządzenie zostało pomyślnie zarejestrowane!</p>
-        <button class="primary-button" @click="goToDashboard">Przejdź do pulpitu</button>
+      <div v-else-if="isSuccess" class="success">
+        <h2>Urządzenie zostało pomyślnie zarejestrowane!</h2>
+        <p>Możesz teraz zamknąć to okno i korzystać z aplikacji na swoim urządzeniu.</p>
       </div>
       <div v-else class="registration-form">
-        <p>Aby korzystać z aplikacji, musisz zarejestrować to urządzenie.</p>
-        <button class="primary-button" @click="registerDevice" :disabled="isProcessing">
-          {{ isProcessing ? 'Rejestrowanie...' : 'Zarejestruj urządzenie' }}
-        </button>
-        <button @click="resetDevice" class="reset-button">
-          Wyczyść dane urządzenia
-        </button>
+        <h1>Zarejestruj urządzenie</h1>
+        <form @submit.prevent="handleSubmit">
+          <div class="form-group">
+            <label>Token od nauczyciela:</label>
+            <input type="text" v-model="formData.token" readonly />
+          </div>
+
+          <div class="form-group">
+            <label>Nazwa urządzenia</label>
+            <input 
+              type="text" 
+              v-model="formData.deviceName" 
+              placeholder="Wpisz nazwę urządzenia"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Imię studenta</label>
+            <input 
+              type="text" 
+              v-model="formData.studentName" 
+              placeholder="Wpisz imię studenta"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Nazwisko studenta</label>
+            <input 
+              type="text" 
+              v-model="formData.studentSurname" 
+              placeholder="Wpisz nazwisko studenta"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Numer albumu</label>
+            <input 
+              type="text" 
+              v-model="formData.albumNumber" 
+              placeholder="Wpisz numer albumu"
+              required
+            />
+          </div>
+
+          <button type="submit" class="submit-btn">Zarejestruj</button>
+        </form>
       </div>
     </div>
   </div>
@@ -34,222 +65,174 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { AttendMeBackendClient } from '@/services/attendmeClient'
+import { useRoute } from 'vue-router'
+import Navbar from '@/components/Navbar.vue'
 
-const router = useRouter()
 const route = useRoute()
-const isLoading = ref(false)
-const isProcessing = ref(false)
-const isRegistered = ref(false)
+const isLoading = ref(true)
 const error = ref<string | null>(null)
+const isSuccess = ref(false)
+const baseUrl = 'https://attendme-backend.runasp.net'
 
-const client = new AttendMeBackendClient('https://attendme-backend.runasp.net')
+const formData = ref({
+  token: '',
+  deviceName: '',
+  studentName: '',
+  studentSurname: '',
+  albumNumber: ''
+})
 
-const showDropdown = ref(false)
+onMounted(() => {
+  const token = route.query.token as string
+  if (!token) {
+    error.value = 'Brak wymaganego tokenu rejestracyjnego'
+    isLoading.value = false
+    return
+  }
+  formData.value.token = token
+  isLoading.value = false
+})
 
-const toggleDropdown = () => {
-  showDropdown.value = !showDropdown.value
-}
-
-const logout = () => {
-  localStorage.removeItem('authToken')
-  localStorage.removeItem('deviceToken')
-  router.push('/login')
-}
-
-const registerDevice = async () => {
+const handleSubmit = async () => {
   try {
-    isProcessing.value = true
-    error.value = null
+    isLoading.value = true
     
-    const token = route.query.token as string
-    if (!token) {
-      error.value = 'Brak wymaganego tokenu rejestracji'
-      return
+    const albumId = parseInt(formData.value.albumNumber)
+    const studentUsername = `stu${albumId}`
+    
+    const response = await fetch(`${baseUrl}/user/device/register`, {
+      method: 'POST',
+      headers: {
+        'accept': 'text/plain',
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${formData.value.token}`
+      },
+      body: JSON.stringify({
+        deviceName: formData.value.deviceName,
+        studentName: formData.value.studentName,
+        studentSurname: formData.value.studentSurname,
+        albumIdNumber: albumId,
+        username: studentUsername
+      }),
+      mode: 'cors',
+      referrerPolicy: 'strict-origin-when-cross-origin'
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.message || errorData.title || 'Błąd podczas rejestracji urządzenia')
     }
 
-    const deviceData = {
-      deviceName: navigator.userAgent
-    }
-
-    const response = await client.userDeviceRegisterWithToken(token, deviceData)
-    
-    if (response && response.token) {
-      localStorage.setItem('deviceToken', response.token)
-      isRegistered.value = true
+    const data = await response.json()
+    if (data && data.token) {
+      localStorage.setItem('deviceToken', data.token)
+      isSuccess.value = true
     } else {
-      throw new Error('Nie otrzymano tokenu urządzenia')
+      throw new Error('Otrzymano nieprawidłową odpowiedź z serwera')
     }
   } catch (err) {
     console.error('Błąd podczas rejestracji urządzenia:', err)
-    error.value = 'Nie udało się zarejestrować urządzenia'
+    error.value = err instanceof Error ? err.message : 'Nie udało się zarejestrować urządzenia'
   } finally {
-    isProcessing.value = false
+    isLoading.value = false
   }
 }
-
-const resetDevice = async () => {
-  try {
-    await client.deviceAuthReset()
-    localStorage.removeItem('deviceToken')
-    error.value = null
-    isRegistered.value = false
-  } catch (err) {
-    console.error('Błąd podczas resetowania urządzenia:', err)
-    error.value = 'Nie udało się zresetować urządzenia'
-  }
-}
-
-const goToDashboard = () => {
-  router.push('/dashboard')
-}
-
-onMounted(() => {
-  const deviceToken = localStorage.getItem('deviceToken')
-  if (deviceToken) {
-    isRegistered.value = true
-  }
-})
 </script>
 
 <style scoped>
-.device-registration-page {
-  width: 100vw;
+.page-container {
   min-height: 100vh;
   background: #121212;
+}
+
+/* Dla komponentów, które mają główną zawartość */
+.content, .session-details, .device-registration {
+  padding-top: 80px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 80px 20px 20px 20px;
   color: white;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
-/* Header styles - skopiowane z Dashboard.vue */
-.header {
-  width: 100%;
-  height: 60px;
-  background: #1f1f1f;
-  color: white;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 0 20px;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 100;
-}
-
-.user-menu {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  background: blue;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.role-indicator {
-  margin-right: 10px;
-  padding: 5px 10px;
-  background: #333;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.dropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background: #2a2a2a;
-  padding: 15px;
-  border-radius: 5px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-  min-width: 200px;
-}
-
-.user-name {
-  margin: 0 0 10px 0;
-  padding: 5px 0;
-  border-bottom: 1px solid #444;
-}
-
-.logout-button {
-  width: 100%;
-  padding: 8px;
-  background: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.2s;
-}
-
-.logout-button:hover {
-  background: #c82333;
-}
-
-/* Device registration specific styles */
 .device-registration {
   max-width: 600px;
-  margin: 80px auto 0;
+  margin: 0 auto;
   padding: 20px;
-  background: #1f1f1f;
-  border-radius: 8px;
+  color: #ffffff;
+}
+
+h1 {
+  margin-bottom: 20px;
+  font-size: 2em;
   text-align: center;
 }
 
-.primary-button {
-  margin: 10px;
-  padding: 10px 20px;
-  background: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.registration-form {
+  background: #1f1f1f;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.primary-button:disabled {
-  background: #666;
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  color: #ffffff;
+}
+
+input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #333;
+  border-radius: 4px;
+  background: #2a2a2a;
+  color: #ffffff;
+}
+
+input[readonly] {
+  background: #404040;
   cursor: not-allowed;
 }
 
-.reset-button {
-  margin: 10px;
-  padding: 10px 20px;
-  background: #ff4444;
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  background: #1a73e8;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 1em;
 }
 
-.reset-button:hover {
-  background: #cc0000;
+.submit-btn:hover {
+  background: #1557b0;
+}
+
+.loading {
+  text-align: center;
+  font-size: 1.2em;
+  margin: 20px 0;
 }
 
 .error {
   color: #ff4444;
-  margin: 10px 0;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: rgba(255, 68, 68, 0.1);
+  margin: 20px 0;
 }
 
 .success {
   color: #4CAF50;
-  margin: 10px 0;
-}
-
-.loading {
-  color: #888;
+  text-align: center;
+  padding: 20px;
+  border-radius: 4px;
+  background-color: rgba(76, 175, 80, 0.1);
+  margin: 20px 0;
 }
 </style> 

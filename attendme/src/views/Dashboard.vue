@@ -1,16 +1,6 @@
 <template>
     <div class="dashboard">
-      <header class="header">
-        <div class="user-menu">
-          <div class="role-indicator">{{ userRole === 'teacher' ? 'Nauczyciel' : 'Student' }}</div>
-          <div class="avatar" @click="toggleDropdown">PK</div>
-          <div class="dropdown" v-if="showDropdown">
-            <p class="user-name">Paweł Kołodziej</p>
-            <button class="logout-button" @click="logout">Wyloguj</button>
-          </div>
-        </div>
-      </header>
-  
+      <Navbar :userRole="userRole" :userName="userName" />
       <div class="content">
         <div class="filters-container">
           <h2>Filtry</h2>
@@ -49,6 +39,7 @@ import { useRouter } from 'vue-router'
 import { getTeacherSessions } from '@/services/courseService'
 import type { CourseSessionListItem } from '@/services/attendmeClient'
 import { AttendMeBackendClient } from '@/services/attendmeClient'
+import Navbar from '@/components/Navbar.vue'
 
 const router = useRouter()
 const client = new AttendMeBackendClient('https://attendme-backend.runasp.net', {
@@ -71,6 +62,7 @@ const showDropdown = ref(false)
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const userRole = ref<string>('')
+const userName = ref<string>('')
 
 const fetchCourses = async () => {
   try {
@@ -198,6 +190,7 @@ const getUserRole = async () => {
 
     const user = await client.userGet()
     userRole.value = user.isTeacher ? 'teacher' : 'student'
+    userName.value = user.name
     console.log('Rola użytkownika:', userRole.value)
   } catch (err) {
     console.error('Błąd podczas pobierania roli użytkownika:', err)
@@ -235,54 +228,6 @@ watch(searchQuery, () => {
     display: flex;
     flex-direction: column;
     align-items: center;
-  }
-  
-  /* Nagłówek */
-  .header {
-    width: 100%;
-    height: 60px;
-    background: #1f1f1f;
-    color: white;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    padding: 0 20px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 100;
-  }
-  .logo {
-    width: 50px;
-  }
-  .user-menu {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-  .avatar {
-    width: 40px;
-    height: 40px;
-    background: blue;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  button {
-    width: 100%;
-    padding: 5px;
-    border: none;
-    background: red;
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  button:hover {
-    background: darkred;
   }
   
   /* Główna zawartość */

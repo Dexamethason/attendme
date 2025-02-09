@@ -47,7 +47,7 @@ import Navbar from '@/components/Navbar.vue'
 
 const route = useRoute()
 const router = useRouter()
-const sessionId = Number(route.params.id)
+const sessionId = computed(() => Number(route.params.id))
 const courseGroupId = ref<number | null>(null)
 const session = ref(null)
 const currentAttendance = ref(null)
@@ -73,7 +73,7 @@ const client = new AttendMeBackendClient('https://attendme-backend.runasp.net', 
 
 const fetchSessionDetails = async () => {
   try {
-    console.log('Pobieranie szczegółów zajęć dla sessionId:', sessionId)
+    console.log('Pobieranie szczegółów zajęć dla sessionId:', sessionId.value)
     
     // Pobieramy listę wszystkich zajęć studenta
     const filter = {
@@ -86,7 +86,7 @@ const fetchSessionDetails = async () => {
     console.log('Otrzymana odpowiedź:', response)
     
     // Znajdujemy konkretne zajęcia z listy
-    const sessionDetails = response.items.find(s => s.courseSessionId === sessionId)
+    const sessionDetails = response.items.find(s => s.courseSessionId === sessionId.value)
     console.log('Znalezione szczegóły zajęć:', sessionDetails)
     
     if (sessionDetails) {
@@ -110,7 +110,7 @@ const fetchAttendance = async () => {
     const response = await client.courseStudentAttendanceGet(courseGroupId.value)
     console.log('Pobrane dane o obecności:', response)
     attendanceHistory.value = response
-    currentAttendance.value = response.find(a => a.courseSessionId === sessionId)
+    currentAttendance.value = response.find(a => a.courseSessionId === sessionId.value)
     console.log('Obecność dla bieżących zajęć:', currentAttendance.value)
   } catch (err) {
     error.value = 'Nie udało się pobrać danych o obecności'
@@ -136,7 +136,15 @@ const formatDate = (date: Date | undefined): string => {
 }
 
 const goToRegisterAttendance = () => {
-  router.push('/register-attendance')
+  if (!session.value?.courseSessionId) {
+    console.error('Brak ID sesji')
+    return
+  }
+  
+  console.log('Przekierowuję do rejestracji obecności z sessionId:', session.value.courseSessionId)
+  router.push({
+    path: `/register-attendance/${session.value.courseSessionId}`
+  })
 }
 
 const attendancePercentage = computed(() => {

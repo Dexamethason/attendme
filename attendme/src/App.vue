@@ -69,4 +69,16 @@ nav a:first-of-type {
     margin-top: 1rem;
   }
 }
+
+.page-container {
+  min-height: 100vh;
+  padding-top: 80px;
+  box-sizing: border-box;
+}
+
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
 </style>

@@ -4,6 +4,7 @@ import Dashboard from "../views/Dashboard.vue";
 import DeviceRegistration from '../views/DeviceRegistration.vue'
 import CourseSessionDetails from '@/views/CourseSessionDetails.vue'
 import StudentCourseDetails from '@/views/StudentCourseDetails.vue'
+import RegisterAttendance from '@/views/RegisterAttendance.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -27,6 +28,17 @@ const router = createRouter({
       path: '/device-registration',
       name: 'DeviceRegistration',
       component: DeviceRegistration,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/course/:id/scan',
+      name: 'scan-session',
+      component: () => import('../views/ScanSession.vue')
+    },
+    {
+      path: '/register-attendance/:id',
+      name: 'RegisterAttendance',
+      component: RegisterAttendance,
       meta: { requiresAuth: true }
     }
   ],
